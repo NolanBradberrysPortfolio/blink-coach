@@ -6,7 +6,7 @@ This is not a medical device. It does not diagnose, treat, cure, or prevent dry 
 
 ## How to test on an iPhone
 
-1. Open the deployed HTTPS URL in current iPhone Safari. Camera access will not work from a `file://` URL or an ordinary insecure HTTP page.
+1. Open the live HTTPS URL in current iPhone Safari: https://nolanbradberrysportfolio.github.io/blink-coach/ . Camera access will not work from a `file://` URL or an ordinary insecure HTTP page.
 2. Tap **Start Monitoring**. Safari will ask for camera permission; choose **Allow**. If permission was denied, use iPhone **Settings → Safari → Camera**, allow the site, then return to Safari and tap **Try again**.
 3. To install it like an app, tap Safari’s **Share** button, choose **Add to Home Screen**, then open **Blink Coach** from the Home Screen. The PWA uses standalone display mode and portrait layout.
 4. Put the iPhone on a stand facing you, keep your eyes inside the small preview, and wait for **Face detected**. Tap **Hide preview** in Settings if the screen is beside your monitor.
@@ -22,23 +22,23 @@ The repository contains a GitHub Actions workflow at `.github/workflows/deploy.y
 
 `push or merge to main → install → typecheck → lint → unit tests → Expo web export → GitHub Pages`
 
-This workspace did not contain a GitHub remote or repository credentials, so there is no live URL yet. One owner setup is required:
+The live repository is [NolanBradberrysPortfolio/blink-coach](https://github.com/NolanBradberrysPortfolio/blink-coach), and the deployed app is:
 
-1. Create an empty GitHub repository, for example `blink-coach`.
-2. From this folder, run:
+https://nolanbradberrysportfolio.github.io/blink-coach/
+
+The repository is already connected to this local project. GitHub Actions runs automatically after every push to `main`.
+
+For reference, the one-time connection is:
 
 ```powershell
-git remote add origin https://github.com/YOUR-GITHUB-NAME/blink-coach.git
+git remote add origin https://github.com/NolanBradberrysPortfolio/blink-coach.git
 git branch -M main
 git add .
 git commit -m "Build Blink Coach MVP"
 git push -u origin main
 ```
 
-3. In GitHub, open **Settings → Pages → Build and deployment**, choose **GitHub Actions**, and wait for the workflow to finish.
-4. The URL will be `https://YOUR-GITHUB-NAME.github.io/blink-coach/`.
-
-After that one-time setup, a Codex change committed and pushed to `main` automatically rebuilds and deploys the newest version. The iPhone only needs a refresh, or a close/reopen from the Home Screen.
+If the site ever needs to be re-enabled manually, open the repository's **Settings → Pages** and select **GitHub Actions** under **Build and deployment**. The iPhone only needs a refresh, or a close/reopen from the Home Screen, after deployment finishes.
 
 ## Project architecture
 
