@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { DeveloperOverlay } from '../src/ui/DeveloperOverlay';
+import { TestLabPanel } from '../src/ui/TestLabPanel';
 import { useBlinkCoach } from '../src/hooks/useBlinkCoach';
 import { Card, Header, NumberField, Page, SectionTitle, SecondaryButton, ToggleRow } from '../src/ui/Ui';
 import { colors } from '../src/ui/theme';
@@ -12,7 +13,7 @@ export default function LabScreen(): React.ReactElement {
   const thresholds = coach.settings.manualThresholds;
   return (
     <Page>
-      <Header title="Developer / Test Lab" subtitle="Make missed and duplicate blinks diagnosable." onBack={() => router.back()} />
+      <Header title="TEST LAB" subtitle="Replay blink videos and measure detector behavior." onBack={() => router.back()} />
       <Card>
         <ToggleRow title="Developer Mode" description="Show live raw signals, smoothed signals, state, thresholds, and the graph on Home." value={coach.settings.developerMode} onValueChange={(value) => coach.updateSettings({ developerMode: value })} />
         <Text style={styles.note}>This overlay is intentionally detailed. Use it when a blink was missed or counted twice, then report the signal, state, and threshold values.</Text>
@@ -27,6 +28,9 @@ export default function LabScreen(): React.ReactElement {
         <View style={styles.fieldRow}><Field label="Open" value={String(thresholds.openThreshold)} onChange={(value) => coach.updateManualThresholds({ openThreshold: numberValue(value, 0.35, 0.95) })} suffix="0–1" /><Field label="Close" value={String(thresholds.closeThreshold)} onChange={(value) => coach.updateManualThresholds({ closeThreshold: numberValue(value, 0.05, 0.7) })} suffix="0–1" /></View>
         <View style={styles.fieldRow}><Field label="Min duration" value={String(thresholds.minBlinkDurationMs)} onChange={(value) => coach.updateManualThresholds({ minBlinkDurationMs: numberValue(value, 30, 300) })} suffix="ms" /><Field label="Max duration" value={String(thresholds.maxBlinkDurationMs)} onChange={(value) => coach.updateManualThresholds({ maxBlinkDurationMs: numberValue(value, 300, 2000) })} suffix="ms" /></View>
       </Card>
+
+      <SectionTitle>Prerecorded video test</SectionTitle>
+      <TestLabPanel />
 
       <SectionTitle>Detector boundary</SectionTitle>
       <Card style={styles.architectureCard}>

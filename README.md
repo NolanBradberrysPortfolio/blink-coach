@@ -16,11 +16,15 @@ This is not a medical device. It does not diagnose, treat, cure, or prevent dry 
 
 Before relying on it for a longer session, test once with the default 5-second reminder, then test calibration: **Calibrate → Begin Calibration → naturally open eyes → five natural blinks → three deliberate complete blinks**.
 
+## How to test a prerecorded blink video
+
+Open **Developer / Test Lab** on the deployed iPhone app, tap **Choose local video**, and select a video from Photos or Files. Pause at each real blink, tap **MARK BLINK** (or **MARK INCOMPLETE BLINK** for a partial closure), and use **Remove** to correct labels. Tap **Analyze video** to run the current detector, then tap event/timeline markers and false-positive or missed-blink rows to inspect the signal graph and thresholds. **Import annotations** and **Export annotations** exchange JSON labels; **Save signal fixture** exports eye signals for offline regression without exporting video. Full details are in [`TEST_LAB.md`](TEST_LAB.md).
+
 ## How deployment works
 
 The repository contains a GitHub Actions workflow at `.github/workflows/deploy.yml`:
 
-`push or merge to main → install → typecheck → lint → unit tests → Expo web export → GitHub Pages`
+`push or merge to main → install → typecheck → lint → unit tests → blink regression tests → Expo web export → GitHub Pages`
 
 The live repository is [NolanBradberrysPortfolio/blink-coach](https://github.com/NolanBradberrysPortfolio/blink-coach), and the deployed app is:
 
@@ -58,6 +62,8 @@ The blink state machine, calibration model, rolling statistics, reminder engine,
 
 See `ARCHITECTURE.md` for the detector boundary and future native connection point.
 
+See [`TEST_LAB.md`](TEST_LAB.md) for the prerecorded-video test workflow, annotation format, regression reports, baseline policy, parameter search, and public-dataset guidance. Open **Developer / Test Lab** in the iPhone app to choose a local video, mark known blinks, run the shared detector pipeline, and inspect false positives or missed blinks.
+
 The browser loads the `@mediapipe/tasks-vision` browser bundle, its WASM runtime, and the face-landmarker model when monitoring starts. These are code/model downloads only; camera frames are processed locally in the browser and are never uploaded or saved. There is no backend, account, cloud database, analytics, tracking, or advertising.
 
 ## Useful commands
@@ -69,6 +75,8 @@ npm run typecheck
 npm run lint
 npm test
 npm run build:web   # static output in dist/
+npm run test:blink-regression
+npm run optimize:blink-detector
 ```
 
 ## Future native iOS path
@@ -82,3 +90,5 @@ The current deliverable is the web/PWA version because it can be tested on an iP
 - Camera permission, Safari’s background/stand behavior, iPhone rotation, battery impact, and real-world blink accuracy still need physical iPhone testing. Desktop export and deterministic logic tests cannot prove those device behaviors.
 - Lighting, glasses, strong head turns, face occlusion, looking away, and unusual expressions can reduce face/eye signal quality. Face loss resets the state machine so a missing face is not counted as a blink.
 - The reminder is a wellness cue, not medical advice. Sound can be disabled; future native builds can add haptics at the reminder boundary.
+- Test Lab video analysis is currently a browser/PWA workflow. Offline regression runs process exported eye-signal fixtures; no sample camera video is committed.
+- Regression metrics are engineering measurements, not medically validated blink or eye-health outcomes. A baseline is only approved when held-out validation fixtures do not regress.

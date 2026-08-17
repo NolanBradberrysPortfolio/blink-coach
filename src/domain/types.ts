@@ -2,6 +2,8 @@ export type BlinkState = 'OPEN' | 'CLOSING' | 'CLOSED' | 'OPENING' | 'INVALID';
 
 export type EyeSignalSource = 'blendshape' | 'landmark' | 'none';
 
+export type EyeCombinationRule = 'average' | 'minimum';
+
 export interface EyeFrameResult {
   timestampMs: number;
   faceDetected: boolean;
@@ -28,6 +30,11 @@ export interface BlinkDetectionConfig {
   openFramesRequired: number;
   maxEyeAsymmetry: number;
   smoothingAlpha: number;
+  eyeCombination: EyeCombinationRule;
+  confidenceMinimum: number;
+  missingFrameToleranceMs: number;
+  incompleteClosureThreshold: number;
+  completeBlinkMaxDurationMs: number;
 }
 
 export const DEFAULT_BLINK_CONFIG: BlinkDetectionConfig = {
@@ -41,6 +48,11 @@ export const DEFAULT_BLINK_CONFIG: BlinkDetectionConfig = {
   openFramesRequired: 2,
   maxEyeAsymmetry: 0.38,
   smoothingAlpha: 0.42,
+  eyeCombination: 'average',
+  confidenceMinimum: 0.45,
+  missingFrameToleranceMs: 0,
+  incompleteClosureThreshold: 0.58,
+  completeBlinkMaxDurationMs: 550,
 };
 
 export interface BlinkEvent {
@@ -55,6 +67,8 @@ export interface BlinkEvent {
 }
 
 export type BlinkClassification = 'complete' | 'incomplete';
+
+export type GroundTruthBlinkType = 'blink' | 'incompleteBlink';
 
 export interface BlinkClassificationResult {
   classification: BlinkClassification;
@@ -149,6 +163,9 @@ export interface SignalSample {
   smoothedLeft: number | null;
   smoothedRight: number | null;
   faceDetected: boolean;
+  state?: BlinkState;
+  confidence?: number;
+  signalSource?: EyeSignalSource;
 }
 
 export interface CoachMetrics {

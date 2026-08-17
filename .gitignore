@@ -26,6 +26,9 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
+# Blink Detector Test Lab generated reports
+reports/*.json
+
 # macOS
 .DS_Store
 *.pem

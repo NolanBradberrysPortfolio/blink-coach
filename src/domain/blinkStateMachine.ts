@@ -31,6 +31,7 @@ export class BlinkStateMachine {
   private leftMaxClosureDepth = 0;
   private rightMaxClosureDepth = 0;
   private symmetryAtMax = 1;
+  private lastValidTimestampMs: number | null = null;
 
   constructor(config: BlinkDetectionConfig) {
     this.config = { ...config };
@@ -56,33 +57,48 @@ export class BlinkStateMachine {
     this.leftMaxClosureDepth = 0;
     this.rightMaxClosureDepth = 0;
     this.symmetryAtMax = 1;
+    this.lastValidTimestampMs = null;
   }
 
   process(result: EyeFrameResult): BlinkProcessOutput {
-    if (
+    const invalidSignal =
       !result.faceDetected ||
       result.leftEyeScore === null ||
       result.rightEyeScore === null ||
-      !Number.isFinite(result.timestampMs)
-    ) {
+      !Number.isFinite(result.timestampMs) ||
+      (result.confidence !== undefined && result.confidence < this.config.confidenceMinimum);
+    if (invalidSignal) {
+      const canTolerateMissingFrame =
+        this.state === 'OPEN' &&
+        this.config.missingFrameToleranceMs > 0 &&
+        this.lastValidTimestampMs !== null &&
+        Number.isFinite(result.timestampMs) &&
+        result.timestampMs - this.lastValidTimestampMs <= this.config.missingFrameToleranceMs;
+      if (canTolerateMissingFrame) return this.output(null);
       // A blink may not start before the face disappears and resume after it
       // returns. This avoids counting camera movement as a blink.
       this.reset();
       return this.output(null);
     }
 
-    const left = clamp(result.leftEyeScore, 0, 1);
-    const right = clamp(result.rightEyeScore, 0, 1);
+    const left = clamp(result.leftEyeScore ?? 0, 0, 1);
+    const right = clamp(result.rightEyeScore ?? 0, 0, 1);
+    this.lastValidTimestampMs = result.timestampMs;
     const alpha = clamp(this.config.smoothingAlpha, 0.05, 1);
     this.leftSmoothed = this.leftSmoothed === null ? left : this.leftSmoothed + alpha * (left - this.leftSmoothed);
     this.rightSmoothed = this.rightSmoothed === null ? right : this.rightSmoothed + alpha * (right - this.rightSmoothed);
 
-    const average = (this.leftSmoothed + this.rightSmoothed) / 2;
-    const asymmetry = Math.abs(this.leftSmoothed - this.rightSmoothed);
-    const isOpen = average >= this.config.openThreshold;
-    const isReopened = average >= this.config.reopenThreshold && asymmetry <= this.config.maxEyeAsymmetry;
+    const leftSmoothed = this.leftSmoothed ?? left;
+    const rightSmoothed = this.rightSmoothed ?? right;
+    const combined =
+      this.config.eyeCombination === 'minimum'
+        ? Math.min(leftSmoothed, rightSmoothed)
+        : (leftSmoothed + rightSmoothed) / 2;
+    const asymmetry = Math.abs(leftSmoothed - rightSmoothed);
+    const isOpen = combined >= this.config.openThreshold;
+    const isReopened = combined >= this.config.reopenThreshold && asymmetry <= this.config.maxEyeAsymmetry;
     const isClosed =
-      average <= this.config.closeThreshold && asymmetry <= this.config.maxEyeAsymmetry;
+      combined <= this.config.closeThreshold && asymmetry <= this.config.maxEyeAsymmetry;
     const timestamp = result.timestampMs;
 
     if (isOpen && this.state === 'OPEN') {
@@ -100,8 +116,8 @@ export class BlinkStateMachine {
       ) {
         this.state = 'CLOSING';
         this.closureStartMs = timestamp;
-        this.leftMaxClosureDepth = 1 - this.leftSmoothed;
-        this.rightMaxClosureDepth = 1 - this.rightSmoothed;
+        this.leftMaxClosureDepth = 1 - leftSmoothed;
+        this.rightMaxClosureDepth = 1 - rightSmoothed;
         this.symmetryAtMax = asymmetry;
       }
       return this.output(null);

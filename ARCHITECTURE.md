@@ -12,7 +12,7 @@ interface BlinkDetector {
 }
 ```
 
-The provider in `src/hooks/useBlinkCoach.tsx` is the only orchestration layer. It feeds results into `BlinkStateMachine`, `CalibrationCollector`, `ReminderEngine`, rolling statistics, and the experimental classifier. None of those modules import MediaPipe, DOM camera APIs, or React Native camera components.
+`src/domain/analysisPipeline.ts` is the shared eye-signal-to-event layer. It feeds results into `BlinkStateMachine` and the experimental classifier and returns smoothed `SignalSample` values plus one-shot classified events. Live monitoring and prerecorded Test Lab analysis both use it. None of those modules import MediaPipe, DOM camera APIs, or React Native camera components.
 
 ## Current web path
 
@@ -22,6 +22,25 @@ The provider in `src/hooks/useBlinkCoach.tsx` is the only orchestration layer. I
 4. If those blendshapes are unavailable, it derives a normalized openness signal from the standard eye landmarks using Eye Aspect Ratio.
 5. The provider schedules inference at the configured 10/15/20 FPS target, measures actual inference FPS, and never stores the video element, frame pixels, or detector output beyond the in-memory signal graph for the current session.
 
+## Shared live/video test path
+
+```text
+live HTMLVideoElement ─────┐
+                           ↓
+                  BlinkDetector
+                           ↓
+                    EyeFrameResult
+                           ↓
+                BlinkAnalysisPipeline
+          smoothing + state + classification
+                           ↓
+                     BlinkEvent
+                           ↑
+local prerecorded HTMLVideoElement ───────┘
+```
+
+`BlinkTestRunAccumulator` records the same pipeline output for video runs. The Test Lab only changes frame acquisition and adds local ground-truth comparison; it does not duplicate blink logic. Offline signal fixtures use the same accumulator and pipeline, which makes parameter search and regression tests deterministic.
+
 ## Blink logic
 
 The state machine smooths each eye independently, combines both eyes with an asymmetry guard, and requires a clean sequence:
@@ -30,7 +49,11 @@ The state machine smooths each eye independently, combines both eyes with an asy
 OPEN → CLOSING → CLOSED → OPENING → OPEN
 ```
 
-Face loss resets the state. Minimum/maximum closure duration, close/open frame counts, smoothing, asymmetry, and debounce are configuration values. Events carry closure depth, duration, and symmetry so the experimental classifier can be replaced without changing session logic.
+Face loss resets the state by default. Minimum/maximum closure duration, close/open frame counts, smoothing, eye-combination rule, confidence minimum, missing-frame tolerance, incomplete closure threshold, and debounce are centralized configuration values. Events carry closure depth, duration, and symmetry so the experimental classifier can be replaced without changing session logic.
+
+## Test Lab data boundary
+
+The browser Test Lab uses `URL.createObjectURL(file)` for a selected local video. It never uploads or persists video bytes. Local annotations are stored through AsyncStorage by a stable video ID. An exported signal fixture contains detector-neutral eye scores and labels, not camera frames. `testComparison.ts` performs one-to-one temporal matching and includes diagnostic nearby samples for false positives and missed events.
 
 ## Future native iOS path
 

@@ -1,7 +1,6 @@
 import React, { PropsWithChildren, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { BlinkStateMachine } from '../domain/blinkStateMachine';
+import { BlinkAnalysisPipeline } from '../domain/analysisPipeline';
 import { CalibrationCollector } from '../domain/calibration';
-import { classifyBlink } from '../domain/classifier';
 import { getEffectiveBlinkConfig, effectiveReminderIntervalSeconds } from '../domain/settings';
 import { ReminderEngine } from '../domain/reminderEngine';
 import { createSessionSummary, longestNoBlinkInterval, rollingBlinksPerMinute } from '../domain/statistics';
@@ -136,7 +135,7 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
   const faceDetectedRef = useRef(false);
   const lastBlinkTimestampRef = useRef<number | null>(null);
   const runtimeSessionRef = useRef<RuntimeSession | null>(null);
-  const machineRef = useRef(new BlinkStateMachine(getEffectiveBlinkConfig(DEFAULT_SETTINGS, null)));
+  const pipelineRef = useRef(new BlinkAnalysisPipeline(getEffectiveBlinkConfig(DEFAULT_SETTINGS, null), null));
   const reminderEngineRef = useRef(new ReminderEngine(DEFAULT_SETTINGS.reminderIntervalSeconds * 1000));
   const detectorRef = useRef<Awaited<ReturnType<typeof createBlinkDetector>> | null>(null);
   const processingGenerationRef = useRef(0);
@@ -162,7 +161,8 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
 
   useEffect(() => {
     calibrationProfileRef.current = calibrationProfile;
-    machineRef.current.setConfig(effectiveConfig);
+    pipelineRef.current.setConfig(effectiveConfig);
+    pipelineRef.current.setCalibration(calibrationProfile);
     if (calibrationProfile) void saveCalibration(calibrationProfile);
   }, [calibrationProfile, effectiveConfig]);
 
@@ -180,7 +180,8 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
       setCalibrationProfile(storedCalibration);
       historyRef.current = storedHistory;
       setHistory(storedHistory);
-      machineRef.current.setConfig(getEffectiveBlinkConfig(storedSettings, storedCalibration));
+      pipelineRef.current.setConfig(getEffectiveBlinkConfig(storedSettings, storedCalibration));
+      pipelineRef.current.setCalibration(storedCalibration);
       reminderEngineRef.current.setInterval(effectiveReminderIntervalSeconds(storedSettings) * 1000);
       hydratedRef.current = true;
     });
@@ -240,16 +241,9 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
     setFaceDetected(result.faceDetected);
     setLatestResult(result);
 
-    const output = machineRef.current.process(result);
+    const output = pipelineRef.current.process(result);
     setBlinkState(output.state);
-    const sample: SignalSample = {
-      timestampMs: result.timestampMs,
-      left: result.leftEyeScore,
-      right: result.rightEyeScore,
-      smoothedLeft: output.leftSmoothed,
-      smoothedRight: output.rightSmoothed,
-      faceDetected: result.faceDetected,
-    };
+    const sample: SignalSample = output.signalSample;
     signalHistoryRef.current = [...signalHistoryRef.current, sample].slice(-150);
     setSignalHistory(signalHistoryRef.current);
 
@@ -271,8 +265,7 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
     }
 
     if (output.event) {
-      const classified = classifyBlink(output.event, calibrationProfileRef.current, effectiveConfig);
-      const event: BlinkEvent = { ...output.event, classification: classified.classification };
+      const event: BlinkEvent = output.event;
       if (runtimeSessionRef.current) runtimeSessionRef.current.blinkEvents.push(event);
       const sessionEvents = runtimeSessionRef.current?.blinkEvents ?? [];
       const completeCount = sessionEvents.filter((item) => item.classification === 'complete').length;
@@ -281,11 +274,11 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
       lastBlinkTimestampRef.current = result.timestampMs;
       setLastBlinkTimestampMs(result.timestampMs);
       setLastBlinkDurationMs(output.event.durationMs);
-      setLastClassification(classified.classification);
+      setLastClassification(event.classification ?? null);
       reminderEngineRef.current.recordBlink(result.timestampMs);
       setReminder(reminderEngineRef.current.snapshot());
     }
-  }, [effectiveConfig]);
+  }, []);
 
   const startProcessing = useCallback((video: HTMLVideoElement) => {
     stopProcessing();
@@ -382,8 +375,9 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
     activeRef.current = true;
     calibrationOnlySessionRef.current = false;
     runtimeSessionRef.current = session;
-    machineRef.current.reset();
-    machineRef.current.setConfig(effectiveConfig);
+    pipelineRef.current.reset();
+    pipelineRef.current.setConfig(effectiveConfig);
+    pipelineRef.current.setCalibration(calibrationProfileRef.current);
     reminderEngineRef.current.reset(startTimestampMs);
     lastBlinkTimestampRef.current = startTimestampMs;
     signalHistoryRef.current = [];

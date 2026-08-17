@@ -10,8 +10,8 @@ export function classifyBlink(
   calibration: CalibrationProfile | null,
   config: BlinkDetectionConfig,
 ): BlinkClassificationResult {
-  const depthThreshold = calibration?.completeClosureThreshold ?? 0.58;
-  const durationGood = event.durationMs >= config.minBlinkDurationMs && event.durationMs <= 550;
+  const depthThreshold = calibration?.completeClosureThreshold ?? config.incompleteClosureThreshold;
+  const durationGood = event.durationMs >= config.minBlinkDurationMs && event.durationMs <= config.completeBlinkMaxDurationMs;
   const symmetryGood = event.symmetryAtMax <= config.maxEyeAsymmetry;
   const depthGood = event.maxClosureDepth >= depthThreshold;
   const score =

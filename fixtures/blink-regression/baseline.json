@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "approvedAt": "2026-08-17T15:47:50.764Z",
+  "config": {
+    "openThreshold": 0.62,
+    "closeThreshold": 0.38,
+    "reopenThreshold": 0.58,
+    "minBlinkDurationMs": 80,
+    "maxBlinkDurationMs": 900,
+    "debounceMs": 280,
+    "closeFramesRequired": 2,
+    "openFramesRequired": 2,
+    "maxEyeAsymmetry": 0.38,
+    "smoothingAlpha": 0.42,
+    "eyeCombination": "average",
+    "confidenceMinimum": 0.45,
+    "missingFrameToleranceMs": 0,
+    "incompleteClosureThreshold": 0.58,
+    "completeBlinkMaxDurationMs": 550
+  },
+  "metrics": {
+    "actualCount": 4,
+    "predictedCount": 4,
+    "truePositives": 4,
+    "falsePositives": 0,
+    "falseNegatives": 0,
+    "precision": 1,
+    "recall": 1,
+    "f1": 1,
+    "blinkCountError": 0,
+    "meanTimingErrorMs": 12.5,
+    "medianTimingErrorMs": 0
+  },
+  "validationMetrics": {
+    "actualCount": 2,
+    "predictedCount": 2,
+    "truePositives": 2,
+    "falsePositives": 0,
+    "falseNegatives": 0,
+    "precision": 1,
+    "recall": 1,
+    "f1": 1,
+    "blinkCountError": 0,
+    "meanTimingErrorMs": 25,
+    "medianTimingErrorMs": 25
+  }
+}
