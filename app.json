@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Blink Coach",
+    "slug": "blink-coach",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "blinkcoach",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Blink Coach uses the front camera locally to detect eye openness and blinks. Camera frames are never uploaded or saved."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png",
+      "name": "Blink Coach",
+      "shortName": "Blink Coach",
+      "description": "A private, local-only blink awareness coach for screen use.",
+      "themeColor": "#121A2D",
+      "backgroundColor": "#F5F7FB",
+      "display": "standalone"
+    },
+    "experiments": {
+      "baseUrl": ""
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
