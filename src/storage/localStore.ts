@@ -5,10 +5,12 @@ import {
   DEFAULT_SETTINGS,
   SessionSummary,
 } from '../domain/types';
+import { VideoAnnotationDocument } from '../domain/testLabTypes';
 
 const SETTINGS_KEY = '@blink-coach/settings/v1';
 const CALIBRATION_KEY = '@blink-coach/calibration/v1';
 const HISTORY_KEY = '@blink-coach/history/v1';
+const TEST_ANNOTATIONS_KEY = '@blink-coach/test-lab/annotations/v1';
 
 export async function loadSettings(): Promise<AppSettings> {
   const raw = await AsyncStorage.getItem(SETTINGS_KEY);
@@ -63,4 +65,21 @@ export async function saveHistory(history: SessionSummary[]): Promise<void> {
 
 export async function clearHistory(): Promise<void> {
   await AsyncStorage.removeItem(HISTORY_KEY);
+}
+
+export async function loadTestAnnotations(): Promise<Record<string, VideoAnnotationDocument>> {
+  const raw = await AsyncStorage.getItem(TEST_ANNOTATIONS_KEY);
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw) as Record<string, VideoAnnotationDocument>;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function saveTestAnnotation(document: VideoAnnotationDocument): Promise<void> {
+  const existing = await loadTestAnnotations();
+  existing[document.videoId] = document;
+  await AsyncStorage.setItem(TEST_ANNOTATIONS_KEY, JSON.stringify(existing));
 }

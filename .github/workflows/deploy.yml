@@ -39,6 +39,9 @@ jobs:
       - name: Unit tests
         run: npm test -- --coverage=false
 
+      - name: Blink regression tests
+        run: npm run test:blink-regression
+
       - name: Export the Expo web app
         run: npx expo export --platform web --output-dir dist
         env:

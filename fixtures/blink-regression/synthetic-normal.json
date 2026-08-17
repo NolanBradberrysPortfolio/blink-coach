@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "videoId": "synthetic-normal-01",
+  "videoName": "Synthetic signal fixture (normal light)",
+  "durationMs": 3000,
+  "metadata": {
+    "glasses": false,
+    "lighting": "normal",
+    "angle": "front",
+    "behavior": "normal-blinking",
+    "split": "tuning",
+    "source": "Generated deterministic eye-signal fixture; no camera frames."
+  },
+  "eyeFrames": [
+    { "timestampMs": 0, "faceDetected": true, "leftEyeScore": 0.9, "rightEyeScore": 0.9, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 100, "faceDetected": true, "leftEyeScore": 0.9, "rightEyeScore": 0.9, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 200, "faceDetected": true, "leftEyeScore": 0.9, "rightEyeScore": 0.9, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 300, "faceDetected": true, "leftEyeScore": 0.9, "rightEyeScore": 0.9, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 400, "faceDetected": true, "leftEyeScore": 0.9, "rightEyeScore": 0.9, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 500, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 600, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 700, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 800, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 900, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1000, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1100, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1200, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1300, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1400, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1500, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1600, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1700, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1800, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 1900, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 2000, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 2100, "faceDetected": true, "leftEyeScore": 0.1, "rightEyeScore": 0.1, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 2200, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 2300, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 2400, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 2500, "faceDetected": false, "leftEyeScore": null, "rightEyeScore": null, "signalSource": "none" },
+    { "timestampMs": 2600, "faceDetected": false, "leftEyeScore": null, "rightEyeScore": null, "signalSource": "none" },
+    { "timestampMs": 2700, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 2800, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 2900, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" },
+    { "timestampMs": 3000, "faceDetected": true, "leftEyeScore": 0.95, "rightEyeScore": 0.95, "confidence": 0.9, "signalSource": "blendshape" }
+  ],
+  "events": [
+    { "id": "synthetic-normal-01-1", "timeMs": 900, "type": "blink" },
+    { "id": "synthetic-normal-01-2", "timeMs": 2150, "type": "blink" }
+  ]
+}

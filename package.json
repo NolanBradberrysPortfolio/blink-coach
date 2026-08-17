@@ -19,9 +19,11 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "@types/node": "^24.13.3",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.1",
+    "tsx": "^4.23.12",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -32,7 +34,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx --ignore-pattern node_modules --ignore-pattern dist",
     "test": "jest --runInBand",
-    "build:web": "expo export --platform web --output-dir dist"
+    "build:web": "expo export --platform web --output-dir dist",
+    "test:blink-regression": "tsx scripts/blink-regression.ts",
+    "optimize:blink-detector": "tsx scripts/optimize-blink-detector.ts",
+    "import:eyeblink8": "tsx scripts/import-eyeblink8.ts"
   },
   "private": true
 }
