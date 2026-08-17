@@ -122,7 +122,17 @@ export function CameraPreview({
           autoPlay: true,
           muted: true,
           playsInline: true,
-          style: [styles.video, hidden && styles.hiddenVideo],
+          // This is a real DOM element, so it must receive a CSS object.
+          // React Native style arrays are valid for <View>, but React DOM
+          // throws when an array is passed to an HTML element's style prop.
+          style: {
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transform: 'scaleX(-1)',
+            backgroundColor: '#121A2D',
+            ...(hidden ? { opacity: 0.02 } : {}),
+          } as React.CSSProperties,
           'aria-hidden': hidden,
         })
       ) : (
