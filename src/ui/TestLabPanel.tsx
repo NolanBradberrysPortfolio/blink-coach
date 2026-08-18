@@ -29,6 +29,8 @@ const DEFAULT_METADATA: TestFixtureMetadata = {
   split: 'tuning',
 };
 
+const MAX_VIDEO_ANALYSIS_FPS = 30;
+
 export function TestLabPanel(): React.ReactElement {
   const coach = useBlinkCoach();
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -207,7 +209,10 @@ export function TestLabPanel(): React.ReactElement {
     setSelectedIssue(null);
     const originalTime = video.currentTime;
     const accumulator = new BlinkTestRunAccumulator(coach.effectiveConfig, coach.calibrationProfile, videoId ?? undefined);
-    const targetFps = Math.max(5, Math.min(20, coach.settings.inferenceFps));
+    // Offline replay can sample more densely than live monitoring. This keeps
+    // short blinks from falling between two 10–20 FPS camera samples without
+    // increasing the phone's live inference workload.
+    const targetFps = Math.max(10, Math.min(MAX_VIDEO_ANALYSIS_FPS, coach.settings.inferenceFps * 2));
     const stepMs = 1000 / targetFps;
     const totalFrames = Math.max(1, Math.ceil(durationMs / stepMs) + 1);
     let processed = 0;
@@ -219,7 +224,7 @@ export function TestLabPanel(): React.ReactElement {
       await detector.initialize();
       for (let timeMs = 0; timeMs <= durationMs; timeMs += stepMs) {
         if (cancelAnalysisRef.current) break;
-        await seekVideo(video, timeMs / 1000);
+        await seekVideoFrame(video, timeMs / 1000);
         const result = await detector.processFrame(video, timeMs);
         accumulator.processFrame(result);
         processed += 1;
@@ -371,7 +376,7 @@ export function TestLabPanel(): React.ReactElement {
 
           <Card>
             <Text style={styles.cardTitle}>Run detector analysis</Text>
-            <Text style={styles.helpText}>The video is sampled at approximately {coach.settings.inferenceFps} frames per second and may process faster than playback. Face loss resets the shared blink state machine.</Text>
+            <Text style={styles.helpText}>The video is replayed at up to {MAX_VIDEO_ANALYSIS_FPS} samples per second for accuracy and may process faster than playback. Live monitoring keeps its separate configured rate. Face loss resets the shared blink state machine.</Text>
             <View style={styles.buttonRow}>
               {analysisStatus === 'running' ? <SecondaryButton label="Cancel analysis" onPress={cancelAnalysis} /> : <PrimaryButton label="Analyze video" onPress={() => void analyzeVideo()} />}
             </View>
@@ -539,6 +544,32 @@ function seekVideo(video: HTMLVideoElement, timeSeconds: number): Promise<void> 
     video.currentTime = target;
     if (Math.abs(video.currentTime - target) < 0.01) window.setTimeout(finish, 0);
   });
+}
+
+/**
+ * A seeked event means the media timeline moved, but on some browsers the
+ * decoded frame exposed to MediaPipe is updated one compositor tick later.
+ * Waiting for requestVideoFrameCallback prevents the video test lab from
+ * repeatedly analyzing a stale frame while live monitoring continues to use
+ * the current camera frame.
+ */
+async function seekVideoFrame(video: HTMLVideoElement, timeSeconds: number): Promise<void> {
+  await seekVideo(video, timeSeconds);
+  if (typeof video.requestVideoFrameCallback === 'function') {
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeout);
+        resolve();
+      };
+      const timeout = window.setTimeout(finish, 500);
+      video.requestVideoFrameCallback(() => finish());
+    });
+    return;
+  }
+  await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
 }
 
 function yieldToUi(): Promise<void> {
