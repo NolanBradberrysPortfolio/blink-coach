@@ -15,16 +15,26 @@ export function DeveloperOverlay({ embedded = false }: { embedded?: boolean }): 
       <SectionTitle dark={embedded}>Developer / Test Lab</SectionTitle>
       <Card dark={embedded}>
         <View style={styles.grid}>
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Face" value={coach.faceDetected ? 'detected' : 'not detected'} />
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Inference FPS" value={formatDecimal(coach.inferenceFps, 1)} />
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Blink state" value={coach.blinkState} />
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Events" value={String(coach.metrics.totalBlinks)} />
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Last duration" value={coach.lastBlinkDurationMs === null ? '—' : `${Math.round(coach.lastBlinkDurationMs)} ms`} />
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Since last" value={`${(coach.metrics.timeSinceLastBlinkMs / 1000).toFixed(1)} s`} />
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Reminder" value={coach.reminder.armed ? 'armed' : 'cooldown'} />
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Classification" value={coach.lastClassification ?? '—'} />
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Complete % (exp.)" value={coach.completeBlinkPercentage === null ? '—' : `${Math.round(coach.completeBlinkPercentage)}%`} />
-          <LabeledValue style={styles.gridItem} dark={embedded} label="Incomplete (exp.)" value={String(coach.incompleteBlinkCount)} />
+          <View style={styles.gridRow}>
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Face" value={coach.faceDetected ? 'detected' : 'not detected'} />
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Inference FPS" value={formatDecimal(coach.inferenceFps, 1)} />
+          </View>
+          <View style={styles.gridRow}>
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Blink state" value={coach.blinkState} />
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Events" value={String(coach.metrics.totalBlinks)} />
+          </View>
+          <View style={styles.gridRow}>
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Last duration" value={coach.lastBlinkDurationMs === null ? '—' : `${Math.round(coach.lastBlinkDurationMs)} ms`} />
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Since last" value={`${(coach.metrics.timeSinceLastBlinkMs / 1000).toFixed(1)} s`} />
+          </View>
+          <View style={styles.gridRow}>
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Reminder" value={coach.reminder.armed ? 'armed' : 'cooldown'} />
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Classification" value={coach.lastClassification ?? '—'} />
+          </View>
+          <View style={styles.gridRow}>
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Complete % (exp.)" value={coach.completeBlinkPercentage === null ? '—' : `${Math.round(coach.completeBlinkPercentage)}%`} />
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Incomplete (exp.)" value={String(coach.incompleteBlinkCount)} />
+          </View>
         </View>
         <View style={styles.divider} />
         <Text style={[styles.subheading, embedded && styles.darkText]}>Raw eye signal</Text>
@@ -62,11 +72,12 @@ function formatNullable(value: number | null | undefined): string {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 15 },
-  gridItem: { width: '47%', flexGrow: 0, flexShrink: 1 },
-  signalRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 14, marginBottom: 14 },
-  signalItem: { width: '30%', flexGrow: 0, flexShrink: 1 },
-  calibrationItem: { width: '47%', flexGrow: 0, flexShrink: 1 },
+  grid: { gap: 15 },
+  gridRow: { flexDirection: 'row', gap: 14 },
+  gridItem: { flex: 1, minWidth: 0 },
+  signalRow: { flexDirection: 'row', gap: 14, marginBottom: 14 },
+  signalItem: { flex: 1, minWidth: 0 },
+  calibrationItem: { flex: 1, minWidth: 0 },
   divider: { height: 1, backgroundColor: colors.line, marginVertical: 17 },
   subheading: { color: colors.ink, fontSize: 13, fontWeight: '800', marginBottom: 10 },
   darkText: { color: colors.darkText },
