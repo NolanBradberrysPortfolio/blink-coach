@@ -414,17 +414,17 @@ function AnalysisResults({
       <Card>
         <Text style={styles.cardTitle}>Comparison results</Text>
         <View style={styles.metricsGrid}>
-          <LabeledValue label="True positives" value={String(comparison.metrics.truePositives)} />
-          <LabeledValue label="False positives" value={String(comparison.metrics.falsePositives)} />
-          <LabeledValue label="False negatives" value={String(comparison.metrics.falseNegatives)} />
-          <LabeledValue label="Precision" value={formatPercent(comparison.metrics.precision)} />
-          <LabeledValue label="Recall" value={formatPercent(comparison.metrics.recall)} />
-          <LabeledValue label="F1" value={formatPercent(comparison.metrics.f1)} />
-          <LabeledValue label="Count error" value={signedNumber(comparison.metrics.blinkCountError)} />
-          <LabeledValue label="Mean timing" value={`${comparison.metrics.meanTimingErrorMs.toFixed(0)} ms`} />
-          <LabeledValue label="Median timing" value={`${comparison.metrics.medianTimingErrorMs.toFixed(0)} ms`} />
-          <LabeledValue label="Processing FPS" value={run.processingFps.toFixed(1)} />
-          <LabeledValue label="Face-loss sections" value={String(run.faceNotDetectedSections.length)} />
+          <LabeledValue style={styles.metricItem} label="True positives" value={String(comparison.metrics.truePositives)} />
+          <LabeledValue style={styles.metricItem} label="False positives" value={String(comparison.metrics.falsePositives)} />
+          <LabeledValue style={styles.metricItem} label="False negatives" value={String(comparison.metrics.falseNegatives)} />
+          <LabeledValue style={styles.metricItem} label="Precision" value={formatPercent(comparison.metrics.precision)} />
+          <LabeledValue style={styles.metricItem} label="Recall" value={formatPercent(comparison.metrics.recall)} />
+          <LabeledValue style={styles.metricItem} label="F1" value={formatPercent(comparison.metrics.f1)} />
+          <LabeledValue style={styles.metricItem} label="Count error" value={signedNumber(comparison.metrics.blinkCountError)} />
+          <LabeledValue style={styles.metricItem} label="Mean timing" value={`${comparison.metrics.meanTimingErrorMs.toFixed(0)} ms`} />
+          <LabeledValue style={styles.metricItem} label="Median timing" value={`${comparison.metrics.medianTimingErrorMs.toFixed(0)} ms`} />
+          <LabeledValue style={styles.metricItem} label="Processing FPS" value={run.processingFps.toFixed(1)} />
+          <LabeledValue style={styles.metricItem} label="Face-loss sections" value={String(run.faceNotDetectedSections.length)} />
         </View>
         <View style={styles.toleranceRow}><Text style={styles.fieldLabel}>Matching tolerance</Text><NumberField value={String(toleranceMs)} onChangeText={(value) => onToleranceChange(numberValue(value, 50, 1000))} suffix="ms" accessibilityLabel="Ground-truth matching tolerance" /></View>
         <Text style={styles.experimentalLabel}>Incomplete-blink classification (matched events only)</Text>
@@ -613,7 +613,8 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', borderRadius: 6, backgroundColor: colors.teal },
   progressText: { color: colors.muted, fontSize: 12, marginTop: 6 },
   successText: { color: colors.teal, fontSize: 13, fontWeight: '800', marginTop: 12 },
-  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 15, marginTop: 10 },
+  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 15, marginTop: 10 },
+  metricItem: { width: '47%', flexGrow: 0, flexShrink: 1 },
   toleranceRow: { maxWidth: 190, marginTop: 10 },
   experimentalLabel: { color: colors.softMuted, fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 16 },
   classificationText: { color: colors.muted, fontSize: 12, marginTop: 4 },
