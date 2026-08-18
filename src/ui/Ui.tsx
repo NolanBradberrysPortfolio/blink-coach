@@ -141,9 +141,9 @@ export function ToggleRow({
   );
 }
 
-export function LabeledValue({ label, value, dark = false }: { label: string; value: string; dark?: boolean }): React.ReactElement {
+export function LabeledValue({ label, value, dark = false, style }: { label: string; value: string; dark?: boolean; style?: StyleProp<ViewStyle> }): React.ReactElement {
   return (
-    <View style={styles.labeledValue}>
+    <View style={[styles.labeledValue, style]}>
       <Text style={[styles.labeledLabel, dark && styles.darkMuted]}>{label}</Text>
       <Text style={[styles.labeledValueText, dark && styles.darkText]}>{value}</Text>
     </View>
