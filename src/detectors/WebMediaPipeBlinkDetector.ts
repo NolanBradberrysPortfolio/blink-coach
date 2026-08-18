@@ -37,10 +37,10 @@ export class WebMediaPipeBlinkDetector implements BlinkDetector {
   async initialize(): Promise<void> {
     const { FaceLandmarker, FilesetResolver } = await loadVisionBundle();
     const vision = await FilesetResolver.forVisionTasks(this.options.wasmRoot);
-    this.landmarker = await FaceLandmarker.createFromOptions(vision, {
+    const createLandmarker = (delegate: 'GPU' | 'CPU') => FaceLandmarker.createFromOptions(vision, {
       baseOptions: {
         modelAssetPath: this.options.modelAssetPath,
-        delegate: this.options.useGpu ? 'GPU' : 'CPU',
+        delegate,
       },
       runningMode: 'VIDEO',
       numFaces: 1,
@@ -49,6 +49,18 @@ export class WebMediaPipeBlinkDetector implements BlinkDetector {
       minFacePresenceConfidence: 0.55,
       minTrackingConfidence: 0.55,
     });
+
+    if (this.options.useGpu) {
+      try {
+        this.landmarker = await createLandmarker('GPU');
+        return;
+      } catch {
+        // Some iPhone Safari/PWA combinations expose the camera but reject
+        // MediaPipe's WebGL delegate. CPU inference is slower, but keeps the
+        // same detector functional instead of leaving the session at 0 FPS.
+      }
+    }
+    this.landmarker = await createLandmarker('CPU');
   }
 
   async processFrame(frame: unknown, timestampMs: number): Promise<EyeFrameResult> {

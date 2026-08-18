@@ -140,6 +140,8 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
   const detectorRef = useRef<Awaited<ReturnType<typeof createBlinkDetector>> | null>(null);
   const processingGenerationRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
+  const videoFrameCallbackRef = useRef<number | null>(null);
+  const processingVideoRef = useRef<HTMLVideoElement | null>(null);
   const inferenceTimesRef = useRef<number[]>([]);
   const signalHistoryRef = useRef<SignalSample[]>([]);
   const calibrationRef = useRef<CalibrationCollector | null>(null);
@@ -195,7 +197,12 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
     if (animationFrameRef.current !== null && typeof window !== 'undefined') {
       window.cancelAnimationFrame(animationFrameRef.current);
     }
+    if (videoFrameCallbackRef.current !== null && processingVideoRef.current?.cancelVideoFrameCallback) {
+      processingVideoRef.current.cancelVideoFrameCallback(videoFrameCallbackRef.current);
+    }
     animationFrameRef.current = null;
+    videoFrameCallbackRef.current = null;
+    processingVideoRef.current = null;
     const detector = detectorRef.current;
     detectorRef.current = null;
     if (detector) void detector.dispose();
@@ -282,6 +289,7 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
 
   const startProcessing = useCallback((video: HTMLVideoElement) => {
     stopProcessing();
+    processingVideoRef.current = video;
     const generation = processingGenerationRef.current;
     setCameraState('initializing');
     void (async () => {
@@ -297,6 +305,20 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
         setCameraState('ready');
         let lastInferenceAt = 0;
         let inferenceBusy = false;
+        const scheduleNextFrame = () => {
+          if (!activeRef.current || generation !== processingGenerationRef.current || typeof window === 'undefined') return;
+          if (typeof video.requestVideoFrameCallback === 'function') {
+            videoFrameCallbackRef.current = video.requestVideoFrameCallback(() => {
+              videoFrameCallbackRef.current = null;
+              tick(clockNow());
+            });
+          } else {
+            animationFrameRef.current = window.requestAnimationFrame((frameTime) => {
+              animationFrameRef.current = null;
+              tick(frameTime);
+            });
+          }
+        };
         const tick = (frameTime: number) => {
           if (!activeRef.current || generation !== processingGenerationRef.current) return;
           const targetInterval = 1000 / settingsRef.current.inferenceFps;
@@ -321,11 +343,9 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
                 inferenceBusy = false;
               });
           }
-          if (activeRef.current && generation === processingGenerationRef.current && typeof window !== 'undefined') {
-            animationFrameRef.current = window.requestAnimationFrame(tick);
-          }
+          scheduleNextFrame();
         };
-        if (typeof window !== 'undefined') animationFrameRef.current = window.requestAnimationFrame(tick);
+        scheduleNextFrame();
       } catch (error) {
         if (activeRef.current && generation === processingGenerationRef.current) {
           const message = error instanceof Error ? error.message : 'MediaPipe could not be loaded.';

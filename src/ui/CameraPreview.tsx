@@ -20,12 +20,15 @@ export function CameraPreview({
 }: CameraPreviewProps): React.ReactElement {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const cleanupVideoListenersRef = useRef<(() => void) | null>(null);
   const [videoReady, setVideoReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     const stopStream = () => {
+      cleanupVideoListenersRef.current?.();
+      cleanupVideoListenersRef.current = null;
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       const video = videoRef.current;
@@ -81,18 +84,52 @@ export function CameraPreview({
           onError('The camera view could not be initialized. Please try again.');
           return;
         }
-        video.srcObject = stream;
-        video.onloadedmetadata = async () => {
-          try {
-            await video.play();
-            if (!cancelled) {
-              setVideoReady(true);
-              onReady(video);
-            }
-          } catch {
-            if (!cancelled) onError('Safari paused the camera. Tap Try again and keep Blink Coach in the foreground.');
-          }
+
+        let readyNotified = false;
+        let errorNotified = false;
+        const reportError = (message: string) => {
+          if (cancelled || errorNotified) return;
+          errorNotified = true;
+          onError(message);
         };
+        const notifyReady = () => {
+          if (cancelled || readyNotified || video.readyState < 2) return;
+          readyNotified = true;
+          setVideoReady(true);
+          onReady(video);
+        };
+        const playAndNotify = () => {
+          void video.play().then(notifyReady).catch(() => {
+            reportError('Safari paused the camera. Tap Try again and keep Blink Coach in the foreground.');
+          });
+        };
+
+        // iPhone Safari is not consistent about which media event fires first
+        // for a MediaStream. Listen to all usable readiness events and attach
+        // them before assigning srcObject so the detector cannot miss startup.
+        video.addEventListener('loadedmetadata', playAndNotify);
+        video.addEventListener('loadeddata', playAndNotify);
+        video.addEventListener('canplay', playAndNotify);
+        video.addEventListener('playing', notifyReady);
+        video.srcObject = stream;
+        playAndNotify();
+
+        const readyTimeout = window.setTimeout(() => {
+          if (!cancelled && !readyNotified) {
+            reportError('The camera opened but Safari did not provide video frames. Tap Try again and keep Blink Coach in the foreground.');
+          }
+        }, 8000);
+
+        const cleanupVideoListeners = () => {
+          window.clearTimeout(readyTimeout);
+          video.removeEventListener('loadedmetadata', playAndNotify);
+          video.removeEventListener('loadeddata', playAndNotify);
+          video.removeEventListener('canplay', playAndNotify);
+          video.removeEventListener('playing', notifyReady);
+        };
+        // The effect cleanup owns the stream; keep the event cleanup alongside
+        // it so a retry cannot leave an old video element notifying the coach.
+        cleanupVideoListenersRef.current = cleanupVideoListeners;
       } catch (error) {
         if (!cancelled) onError(cameraErrorMessage(error));
       }
