@@ -51,6 +51,15 @@ OPEN → CLOSING → CLOSED → OPENING → OPEN
 
 Face loss resets the state by default. Minimum/maximum closure duration, close/open frame counts, smoothing, eye-combination rule, confidence minimum, missing-frame tolerance, incomplete closure threshold, and debounce are centralized configuration values. Events carry closure depth, duration, and symmetry so the experimental classifier can be replaced without changing session logic.
 
+The state machine also has a conservative low-signal baseline mode. During the
+first part of a session it records a high-water mark for each eye. If the
+observed open-eye signal is materially below the global threshold (as can
+happen with tinted goggles), it derives active thresholds from that local
+baseline. Normal higher-valued signals continue using the global or saved
+calibration thresholds. The active thresholds are included in diagnostic
+samples so the Developer overlay and Test Lab graph show what was actually
+used. This is signal normalization, not training a person-specific model.
+
 ## Test Lab data boundary
 
 The browser Test Lab uses `URL.createObjectURL(file)` for a selected local video. It never uploads or persists video bytes. Local annotations are stored through AsyncStorage by a stable video ID. An exported signal fixture contains detector-neutral eye scores and labels, not camera frames. `testComparison.ts` performs one-to-one temporal matching and includes diagnostic nearby samples for false positives and missed events.

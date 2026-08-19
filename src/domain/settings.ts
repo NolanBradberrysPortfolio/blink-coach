@@ -25,6 +25,7 @@ export function getEffectiveBlinkConfig(
   if (!settings.manualThresholdsEnabled) return base;
   return {
     ...base,
+    adaptiveBaselineEnabled: false,
     openThreshold: clamp(settings.manualThresholds.openThreshold, 0.35, 0.95),
     closeThreshold: clamp(settings.manualThresholds.closeThreshold, 0.05, 0.7),
     reopenThreshold: clamp(settings.manualThresholds.openThreshold - 0.03, 0.3, 0.9),

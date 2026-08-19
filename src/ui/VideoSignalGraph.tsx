@@ -61,8 +61,14 @@ export function VideoSignalGraph({
       context.lineTo(CANVAS_WIDTH, y);
       context.stroke();
     }
-    drawThreshold(context, xFor, yFor, config.closeThreshold, '#E6A94A', 'close');
-    drawThreshold(context, xFor, yFor, config.openThreshold, '#72D6C6', 'open');
+    const hasActiveThresholds = samples.some((sample) => sample.activeOpenThreshold !== undefined && sample.activeCloseThreshold !== undefined);
+    if (hasActiveThresholds) {
+      drawThresholdSeries(context, xFor, yFor, samples, 'activeCloseThreshold', '#E6A94A', 'close');
+      drawThresholdSeries(context, xFor, yFor, samples, 'activeOpenThreshold', '#72D6C6', 'open');
+    } else {
+      drawThreshold(context, xFor, yFor, config.closeThreshold, '#E6A94A', 'close');
+      drawThreshold(context, xFor, yFor, config.openThreshold, '#72D6C6', 'open');
+    }
     drawSignal(context, samples, 'left', false, xFor, yFor, start, end, '#45C9B5');
     drawSignal(context, samples, 'right', false, xFor, yFor, start, end, '#7190FF');
     drawSignal(context, samples, 'smoothedLeft', true, xFor, yFor, start, end, '#A8F3E7');
@@ -174,6 +180,38 @@ function drawThreshold(
   context.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
   context.fillStyle = color;
   context.fillText(label, 8, yFor(value) - 5);
+  context.restore();
+}
+
+function drawThresholdSeries(
+  context: CanvasRenderingContext2D,
+  xFor: (timeMs: number) => number,
+  yFor: (value: number) => number,
+  samples: TestSignalSample[],
+  key: 'activeOpenThreshold' | 'activeCloseThreshold',
+  color: string,
+  label: string,
+): void {
+  const points = samples.filter((sample) => sample[key] !== undefined && sample.timestampMs >= 0);
+  if (points.length === 0) return;
+  context.save();
+  context.strokeStyle = color;
+  context.setLineDash([7, 5]);
+  context.beginPath();
+  points.forEach((sample, index) => {
+    const value = sample[key];
+    if (value === undefined) return;
+    const x = xFor(sample.timestampMs);
+    const y = yFor(value);
+    if (index === 0) context.moveTo(x, y);
+    else context.lineTo(x, y);
+  });
+  context.stroke();
+  context.setLineDash([]);
+  context.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+  context.fillStyle = color;
+  const first = points[0][key];
+  if (first !== undefined) context.fillText(label, 8, yFor(first) - 5);
   context.restore();
 }
 

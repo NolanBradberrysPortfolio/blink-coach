@@ -42,7 +42,7 @@ export default function SettingsScreen(): React.ReactElement {
 
       <SectionTitle>Calibration</SectionTitle>
       <Card>
-        <Text style={styles.cardIntro}>{coach.calibrationProfile ? `Saved ${new Date(coach.calibrationProfile.createdAt).toLocaleDateString()} · ${coach.calibrationProfile.sampleCount} eye samples` : 'No personal calibration yet. The default thresholds are safe for testing.'}</Text>
+        <Text style={styles.cardIntro}>{coach.calibrationProfile ? `Saved ${new Date(coach.calibrationProfile.createdAt).toLocaleDateString()} · ${coach.calibrationProfile.sampleCount} eye samples` : 'No personal calibration yet. The detector learns a conservative local open-eye baseline at the start of a session, which helps with goggles and tinted eye protection.'}</Text>
         <PrimaryButton label={coach.calibrationProfile ? 'Recalibrate' : 'Calibrate now'} onPress={() => router.push('/calibrate')} />
       </Card>
 

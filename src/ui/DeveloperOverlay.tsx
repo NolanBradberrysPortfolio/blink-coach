@@ -10,6 +10,7 @@ export function DeveloperOverlay({ embedded = false }: { embedded?: boolean }): 
   const coach = useBlinkCoach();
   const calibration = coach.calibrationProfile;
   const result = coach.latestResult;
+  const latestSample = coach.signalHistory.at(-1);
   return (
     <View>
       <SectionTitle dark={embedded}>Developer / Test Lab</SectionTitle>
@@ -51,9 +52,14 @@ export function DeveloperOverlay({ embedded = false }: { embedded?: boolean }): 
         </View>
         <Text style={[styles.subheading, embedded && styles.darkText]}>Current thresholds</Text>
         <View style={styles.signalRow}>
-          <LabeledValue style={styles.signalItem} dark={embedded} label="Open" value={formatDecimal(coach.effectiveConfig.openThreshold, 2)} />
-          <LabeledValue style={styles.signalItem} dark={embedded} label="Close" value={formatDecimal(coach.effectiveConfig.closeThreshold, 2)} />
+          <LabeledValue style={styles.signalItem} dark={embedded} label="Open" value={formatDecimal(latestSample?.activeOpenThreshold ?? coach.effectiveConfig.openThreshold, 2)} />
+          <LabeledValue style={styles.signalItem} dark={embedded} label="Close" value={formatDecimal(latestSample?.activeCloseThreshold ?? coach.effectiveConfig.closeThreshold, 2)} />
           <LabeledValue style={styles.signalItem} dark={embedded} label="Duration" value={`${coach.effectiveConfig.minBlinkDurationMs}–${coach.effectiveConfig.maxBlinkDurationMs} ms`} />
+        </View>
+        <View style={styles.signalRow}>
+          <LabeledValue style={styles.signalItem} dark={embedded} label="Reopen" value={formatDecimal(latestSample?.activeReopenThreshold ?? coach.effectiveConfig.reopenThreshold, 2)} />
+          <LabeledValue style={styles.signalItem} dark={embedded} label="Mode" value={latestSample?.adaptiveThresholds ? 'relative baseline' : 'global/calibrated'} />
+          <LabeledValue style={styles.signalItem} dark={embedded} label="Live baseline" value={formatPair(latestSample?.openBaselineLeft, latestSample?.openBaselineRight)} />
         </View>
         <Text style={[styles.subheading, embedded && styles.darkText]}>Calibration values</Text>
         <View style={styles.signalRow}>
@@ -71,13 +77,18 @@ function formatNullable(value: number | null | undefined): string {
   return value === null || value === undefined ? '—' : formatDecimal(value, 3);
 }
 
+function formatPair(left: number | null | undefined, right: number | null | undefined): string {
+  if (left === null || left === undefined || right === null || right === undefined) return '\u2014';
+  return `${formatDecimal(left, 2)} / ${formatDecimal(right, 2)}`;
+}
+
 const styles = StyleSheet.create({
   grid: { gap: 15 },
-  gridRow: { flexDirection: 'row', gap: 14 },
-  gridItem: { flex: 1, minWidth: 0 },
-  signalRow: { flexDirection: 'row', gap: 14, marginBottom: 14 },
-  signalItem: { flex: 1, minWidth: 0 },
-  calibrationItem: { flex: 1, minWidth: 0 },
+  gridRow: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -7 },
+  gridItem: { width: '50%', flexGrow: 0, flexShrink: 0, paddingHorizontal: 7 },
+  signalRow: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -7, marginBottom: 14 },
+  signalItem: { width: '33.3333%', flexGrow: 0, flexShrink: 0, paddingHorizontal: 7 },
+  calibrationItem: { width: '50%', flexGrow: 0, flexShrink: 0, paddingHorizontal: 7 },
   divider: { height: 1, backgroundColor: colors.line, marginVertical: 17 },
   subheading: { color: colors.ink, fontSize: 13, fontWeight: '800', marginBottom: 10 },
   darkText: { color: colors.darkText },

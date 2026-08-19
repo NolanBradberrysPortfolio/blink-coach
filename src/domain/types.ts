@@ -35,6 +35,26 @@ export interface BlinkDetectionConfig {
   missingFrameToleranceMs: number;
   incompleteClosureThreshold: number;
   completeBlinkMaxDurationMs: number;
+  /**
+   * Some eyewear (including dark eye-protection goggles) shifts MediaPipe's
+   * eye-openness scores downward without removing the useful blink pattern.
+   * The state machine can learn a conservative local open-eye baseline for
+   * that case instead of requiring a new detector or a person-specific model.
+   */
+  adaptiveBaselineEnabled?: boolean;
+  adaptiveBaselineWarmupMs?: number;
+  adaptiveOpenRatio?: number;
+  adaptiveCloseRatio?: number;
+  adaptiveReopenRatio?: number;
+}
+
+export interface ActiveBlinkThresholds {
+  openThreshold: number;
+  closeThreshold: number;
+  reopenThreshold: number;
+  adaptive: boolean;
+  baselineLeft: number | null;
+  baselineRight: number | null;
 }
 
 export const DEFAULT_BLINK_CONFIG: BlinkDetectionConfig = {
@@ -53,6 +73,11 @@ export const DEFAULT_BLINK_CONFIG: BlinkDetectionConfig = {
   missingFrameToleranceMs: 0,
   incompleteClosureThreshold: 0.58,
   completeBlinkMaxDurationMs: 550,
+  adaptiveBaselineEnabled: true,
+  adaptiveBaselineWarmupMs: 1800,
+  adaptiveOpenRatio: 0.84,
+  adaptiveCloseRatio: 0.64,
+  adaptiveReopenRatio: 0.80,
 };
 
 export interface BlinkEvent {
@@ -166,6 +191,12 @@ export interface SignalSample {
   state?: BlinkState;
   confidence?: number;
   signalSource?: EyeSignalSource;
+  activeOpenThreshold?: number;
+  activeCloseThreshold?: number;
+  activeReopenThreshold?: number;
+  adaptiveThresholds?: boolean;
+  openBaselineLeft?: number | null;
+  openBaselineRight?: number | null;
 }
 
 export interface CoachMetrics {

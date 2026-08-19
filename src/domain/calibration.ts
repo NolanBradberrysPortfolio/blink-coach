@@ -54,7 +54,12 @@ export class CalibrationCollector {
       this.openSamples.push(sample);
     } else if (this.phase === 'natural' || this.phase === 'deliberate') {
       const combined = (sample.left + sample.right) / 2;
-      if (combined < 0.62) this.closedSamples.push(sample);
+      // Use the recorded open-eye baseline rather than a fixed 0.62 gate.
+      // Tinted goggles and some camera/lighting combinations can put a
+      // naturally open eye below that value while preserving blink motion.
+      const openBaseline = this.openBaseline();
+      const closedGate = openBaseline === null ? 0.62 : Math.max(0.22, openBaseline * 0.72);
+      if (combined < closedGate) this.closedSamples.push(sample);
     }
   }
 
@@ -110,5 +115,10 @@ export class CalibrationCollector {
       completeClosureThreshold: clamp(1 - Math.max(closedLeft, closedRight) - gap * 0.12, 0.45, 0.8),
       sampleCount: this.openSamples.length + this.closedSamples.length,
     };
+  }
+
+  private openBaseline(): number | null {
+    if (this.openSamples.length === 0) return null;
+    return mean(this.openSamples.map((sample) => (sample.left + sample.right) / 2));
   }
 }
