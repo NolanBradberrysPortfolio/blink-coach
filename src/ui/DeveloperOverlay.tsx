@@ -23,6 +23,11 @@ export function DeveloperOverlay({ embedded = false }: { embedded?: boolean }): 
             <LabeledValue style={styles.gridItem} dark={embedded} label="Inference FPS" value={formatDecimal(coach.inferenceFps, 1)} />
           </View>
           <View style={styles.gridRow}>
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Camera" value={coach.cameraState} />
+            <LabeledValue style={styles.gridItem} dark={embedded} label="Target FPS" value={String(coach.settings.inferenceFps)} />
+          </View>
+          {coach.cameraError ? <LabeledValue style={styles.fullWidth} dark={embedded} label="Camera error" value={coach.cameraError} /> : null}
+          <View style={styles.gridRow}>
             <LabeledValue style={styles.gridItem} dark={embedded} label="Blink state" value={coach.blinkState} />
             <LabeledValue style={styles.gridItem} dark={embedded} label="Events" value={String(coach.metrics.totalBlinks)} />
           </View>
@@ -88,6 +93,7 @@ const styles = StyleSheet.create({
   grid: { gap: 15 },
   gridRow: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -7 },
   gridItem: { width: '50%', flexBasis: '50%', flexGrow: 0, flexShrink: 0, paddingHorizontal: 7 },
+  fullWidth: { width: '100%', flexBasis: '100%', flexGrow: 0, flexShrink: 0, paddingHorizontal: 7 },
   signalRow: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -7, marginBottom: 14 },
   signalItem: { width: '33.3333%', flexBasis: '33.3333%', flexGrow: 0, flexShrink: 0, paddingHorizontal: 7 },
   calibrationItem: { width: '50%', flexBasis: '50%', flexGrow: 0, flexShrink: 0, paddingHorizontal: 7 },
