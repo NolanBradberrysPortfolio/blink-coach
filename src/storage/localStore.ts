@@ -11,12 +11,21 @@ const SETTINGS_KEY = '@blink-coach/settings/v1';
 const CALIBRATION_KEY = '@blink-coach/calibration/v1';
 const HISTORY_KEY = '@blink-coach/history/v1';
 const TEST_ANNOTATIONS_KEY = '@blink-coach/test-lab/annotations/v1';
+const FPS30_MIGRATION_KEY = '@blink-coach/settings/fps30-migrated';
 
 export async function loadSettings(): Promise<AppSettings> {
   const raw = await AsyncStorage.getItem(SETTINGS_KEY);
   if (!raw) return DEFAULT_SETTINGS;
   try {
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
+    const migrationComplete = await AsyncStorage.getItem(FPS30_MIGRATION_KEY);
+    if (migrationComplete !== '1') {
+      // The previous production default was 15 FPS. Promote that untouched
+      // default once so existing installations receive the short-blink fix;
+      // later manual choices such as 10 or 20 FPS are respected.
+      if (parsed.inferenceFps === 15) parsed.inferenceFps = 30;
+      await AsyncStorage.setItem(FPS30_MIGRATION_KEY, '1');
+    }
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,

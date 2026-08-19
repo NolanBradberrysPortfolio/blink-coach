@@ -210,7 +210,7 @@ export function TestLabPanel(): React.ReactElement {
     const originalTime = video.currentTime;
     const accumulator = new BlinkTestRunAccumulator(coach.effectiveConfig, coach.calibrationProfile, videoId ?? undefined);
     // Offline replay can sample more densely than live monitoring. This keeps
-    // short blinks from falling between two 10–20 FPS camera samples without
+    // short blinks from falling between live camera samples without
     // increasing the phone's live inference workload.
     const targetFps = Math.max(10, Math.min(MAX_VIDEO_ANALYSIS_FPS, coach.settings.inferenceFps * 2));
     const stepMs = 1000 / targetFps;

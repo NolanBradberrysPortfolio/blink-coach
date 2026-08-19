@@ -37,7 +37,7 @@ export default function SettingsScreen(): React.ReactElement {
         <ToggleRow title="Reminder sound" description="A quiet two-tone cue when the reminder fires." value={coach.settings.soundEnabled} onValueChange={(value) => coach.updateSettings({ soundEnabled: value })} />
         <ToggleRow title="Hide camera preview" description="The camera keeps running after positioning, but the preview becomes unobtrusive." value={!coach.settings.cameraPreviewVisible} onValueChange={(value) => coach.updateSettings({ cameraPreviewVisible: !value })} />
         <ToggleRow title="Low-distraction mode" description="Nearly black screen with only the essential monitoring view." value={coach.settings.lowDistractionMode} onValueChange={(value) => coach.updateSettings({ lowDistractionMode: value })} />
-        <View style={styles.fpsRow}><View style={styles.fpsCopy}><Text style={styles.rowTitle}>Inference rate</Text><Text style={styles.rowDescription}>Lower rates use less battery. Actual FPS appears in Developer Mode.</Text></View><View style={styles.fpsChips}>{([10, 15, 20] as const).map((fps) => <Chip key={fps} label={`${fps}`} selected={coach.settings.inferenceFps === fps} onPress={() => coach.updateSettings({ inferenceFps: fps })} />)}</View></View>
+        <View style={styles.fpsRow}><View style={styles.fpsCopy}><Text style={styles.rowTitle}>Inference rate</Text><Text style={styles.rowDescription}>30 FPS catches shorter blinks more reliably but uses more battery. Actual FPS appears in Developer Mode.</Text></View><View style={styles.fpsChips}>{([10, 15, 20, 30] as const).map((fps) => <Chip key={fps} label={`${fps}`} selected={coach.settings.inferenceFps === fps} onPress={() => coach.updateSettings({ inferenceFps: fps })} />)}</View></View>
       </Card>
 
       <SectionTitle>Calibration</SectionTitle>
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   currentInterval: { color: colors.softMuted, fontSize: 11, lineHeight: 16, marginTop: 9 },
   fpsRow: { minHeight: 77, flexDirection: 'row', alignItems: 'center' },
   fpsCopy: { flex: 1, paddingRight: 8 },
-  fpsChips: { flexDirection: 'row', alignItems: 'center' },
+  fpsChips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', maxWidth: 185 },
   rowTitle: { color: colors.ink, fontSize: 16, fontWeight: '700' },
   rowDescription: { color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 3 },
   privacyCard: { backgroundColor: colors.navy },
