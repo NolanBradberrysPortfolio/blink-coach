@@ -66,7 +66,7 @@ export function CameraPreview({
             facingMode: { ideal: 'user' },
             width: { ideal: 640 },
             height: { ideal: 480 },
-            frameRate: { ideal: 20, max: 30 },
+            frameRate: { ideal: 30, max: 30 },
           },
         });
         if (cancelled) {
