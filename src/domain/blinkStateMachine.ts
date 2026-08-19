@@ -1,5 +1,6 @@
 import { clamp } from './math';
 import {
+  ActiveBlinkThresholds,
   BlinkDetectionConfig,
   BlinkEvent,
   BlinkState,
@@ -11,6 +12,7 @@ export interface BlinkProcessOutput {
   event: BlinkEvent | null;
   leftSmoothed: number | null;
   rightSmoothed: number | null;
+  thresholds: ActiveBlinkThresholds;
 }
 
 /**
@@ -32,6 +34,10 @@ export class BlinkStateMachine {
   private rightMaxClosureDepth = 0;
   private symmetryAtMax = 1;
   private lastValidTimestampMs: number | null = null;
+  private baselineStartedAtMs: number | null = null;
+  private baselineLeft: number | null = null;
+  private baselineRight: number | null = null;
+  private adaptiveThresholdsActive = false;
 
   constructor(config: BlinkDetectionConfig) {
     this.config = { ...config };
@@ -58,6 +64,14 @@ export class BlinkStateMachine {
     this.rightMaxClosureDepth = 0;
     this.symmetryAtMax = 1;
     this.lastValidTimestampMs = null;
+    this.baselineStartedAtMs = null;
+    this.baselineLeft = null;
+    this.baselineRight = null;
+    this.adaptiveThresholdsActive = false;
+  }
+
+  getActiveThresholds(): ActiveBlinkThresholds {
+    return this.activeThresholds();
   }
 
   process(result: EyeFrameResult): BlinkProcessOutput {
@@ -90,15 +104,17 @@ export class BlinkStateMachine {
 
     const leftSmoothed = this.leftSmoothed ?? left;
     const rightSmoothed = this.rightSmoothed ?? right;
+    this.updateOpenBaseline(result.timestampMs, leftSmoothed, rightSmoothed);
+    const thresholds = this.activeThresholds();
     const combined =
       this.config.eyeCombination === 'minimum'
         ? Math.min(leftSmoothed, rightSmoothed)
         : (leftSmoothed + rightSmoothed) / 2;
     const asymmetry = Math.abs(leftSmoothed - rightSmoothed);
-    const isOpen = combined >= this.config.openThreshold;
-    const isReopened = combined >= this.config.reopenThreshold && asymmetry <= this.config.maxEyeAsymmetry;
+    const isOpen = combined >= thresholds.openThreshold;
+    const isReopened = combined >= thresholds.reopenThreshold && asymmetry <= this.config.maxEyeAsymmetry;
     const isClosed =
-      combined <= this.config.closeThreshold && asymmetry <= this.config.maxEyeAsymmetry;
+      combined <= thresholds.closeThreshold && asymmetry <= this.config.maxEyeAsymmetry;
     const timestamp = result.timestampMs;
 
     if (isOpen && this.state === 'OPEN') {
@@ -120,7 +136,7 @@ export class BlinkStateMachine {
         this.rightMaxClosureDepth = 1 - rightSmoothed;
         this.symmetryAtMax = asymmetry;
       }
-      return this.output(null);
+      return this.output(null, thresholds);
     }
 
     if (this.state === 'CLOSING') {
@@ -139,7 +155,7 @@ export class BlinkStateMachine {
           this.state = 'CLOSED';
         }
       }
-      return this.output(null);
+      return this.output(null, thresholds);
     }
 
     if (this.state === 'CLOSED') {
@@ -151,7 +167,7 @@ export class BlinkStateMachine {
         this.state = 'OPENING';
         this.openFrameCount = 1;
       }
-      return this.output(null);
+      return this.output(null, thresholds);
     }
 
     if (this.state === 'OPENING') {
@@ -159,12 +175,12 @@ export class BlinkStateMachine {
       const closureDuration = timestamp - (this.closureStartMs ?? timestamp);
       if (closureDuration > this.config.maxBlinkDurationMs) {
         this.state = 'INVALID';
-        return this.output(null);
+        return this.output(null, thresholds);
       }
       if (!isReopened) {
         this.openFrameCount = 0;
         if (isClosed) this.state = 'CLOSED';
-        return this.output(null);
+        return this.output(null, thresholds);
       }
       this.openFrameCount += 1;
       if (this.openFrameCount >= this.config.openFramesRequired) {
@@ -189,9 +205,9 @@ export class BlinkStateMachine {
         this.rightMaxClosureDepth = 0;
         this.symmetryAtMax = 1;
         if (event) this.hasEstablishedOpen = true;
-        return this.output(event);
+        return this.output(event, thresholds);
       }
-      return this.output(null);
+      return this.output(null, thresholds);
     }
 
     // INVALID waits for a clean open signal before becoming eligible again.
@@ -206,7 +222,7 @@ export class BlinkStateMachine {
     } else {
       this.openFrameCount = 0;
     }
-    return this.output(null);
+    return this.output(null, thresholds);
   }
 
   private updateClosureExtrema(asymmetry: number): void {
@@ -219,12 +235,77 @@ export class BlinkStateMachine {
     this.rightMaxClosureDepth = Math.max(this.rightMaxClosureDepth, rightDepth);
   }
 
-  private output(event: BlinkEvent | null): BlinkProcessOutput {
+  private updateOpenBaseline(timestampMs: number, left: number, right: number): void {
+    if (this.config.adaptiveBaselineEnabled === false) return;
+    if (this.baselineStartedAtMs === null) {
+      this.baselineStartedAtMs = timestampMs;
+      this.baselineLeft = left;
+      this.baselineRight = right;
+      return;
+    }
+
+    const warmupMs = Math.max(300, this.config.adaptiveBaselineWarmupMs ?? 1800);
+    if (timestampMs - this.baselineStartedAtMs <= warmupMs) {
+      // Use a high-water mark during warmup. A user may begin a session with
+      // their eyes closed, so the first frame must not become the baseline.
+      this.baselineLeft = Math.max(this.baselineLeft ?? left, left);
+      this.baselineRight = Math.max(this.baselineRight ?? right, right);
+    }
+
+    if (!this.adaptiveThresholdsActive) {
+      const baselineAverage = this.baselineAverage();
+      const minimumUsefulBaseline = this.config.closeThreshold + 0.08;
+      if (
+        timestampMs - this.baselineStartedAtMs >= 300 &&
+        baselineAverage >= minimumUsefulBaseline &&
+        baselineAverage < this.config.openThreshold
+      ) {
+        this.adaptiveThresholdsActive = true;
+      }
+    }
+  }
+
+  private baselineAverage(): number {
+    if (this.baselineLeft === null || this.baselineRight === null) return 0;
+    return (this.baselineLeft + this.baselineRight) / 2;
+  }
+
+  private activeThresholds(): ActiveBlinkThresholds {
+    const baselineAverage = this.baselineAverage();
+    if (!this.adaptiveThresholdsActive || baselineAverage <= 0) {
+      return {
+        openThreshold: this.config.openThreshold,
+        closeThreshold: this.config.closeThreshold,
+        reopenThreshold: this.config.reopenThreshold,
+        adaptive: false,
+        baselineLeft: this.baselineLeft,
+        baselineRight: this.baselineRight,
+      };
+    }
+
+    const closeRatio = clamp(this.config.adaptiveCloseRatio ?? 0.64, 0.35, 0.85);
+    const openRatio = clamp(this.config.adaptiveOpenRatio ?? 0.84, 0.65, 1);
+    const reopenRatio = clamp(this.config.adaptiveReopenRatio ?? 0.8, 0.6, 1);
+    const closeThreshold = clamp(baselineAverage * closeRatio, 0.18, 0.55);
+    const openThreshold = clamp(baselineAverage * openRatio, closeThreshold + 0.06, 0.9);
+    const reopenThreshold = clamp(baselineAverage * reopenRatio, closeThreshold + 0.04, openThreshold);
+    return {
+      openThreshold,
+      closeThreshold,
+      reopenThreshold,
+      adaptive: true,
+      baselineLeft: this.baselineLeft,
+      baselineRight: this.baselineRight,
+    };
+  }
+
+  private output(event: BlinkEvent | null, thresholds = this.activeThresholds()): BlinkProcessOutput {
     return {
       state: this.state,
       event,
       leftSmoothed: this.leftSmoothed,
       rightSmoothed: this.rightSmoothed,
+      thresholds,
     };
   }
 }

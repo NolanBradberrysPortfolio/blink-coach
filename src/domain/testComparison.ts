@@ -103,15 +103,17 @@ export function compareBlinkEvents(
   const matchedPredicted = new Set(matches.map((match) => match.predictedIndex));
   const matchedGroundTruth = new Set(matches.map((match) => match.groundTruthIndex));
   const metrics = calculateBlinkMetrics(predicted.length, groundTruth.length, matches);
-  const thresholds = selectThresholds(config);
   const falsePositives = predicted
     .map((event, index) => ({ event, index }))
     .filter(({ index }) => !matchedPredicted.has(index))
-    .map(({ event }) => createDiagnosticIssue('falsePositive', blinkEventTimeMs(event), samples, thresholds, event));
+    .map(({ event }) => {
+      const timestampMs = blinkEventTimeMs(event);
+      return createDiagnosticIssue('falsePositive', timestampMs, samples, selectThresholds(config, samples, timestampMs), event);
+    });
   const falseNegatives = groundTruth
     .map((event, index) => ({ event, index }))
     .filter(({ index }) => !matchedGroundTruth.has(index))
-    .map(({ event }) => createDiagnosticIssue('falseNegative', event.timeMs, samples, thresholds, undefined, event));
+    .map(({ event }) => createDiagnosticIssue('falseNegative', event.timeMs, samples, selectThresholds(config, samples, event.timeMs), undefined, event));
 
   return {
     toleranceMs,
@@ -246,11 +248,14 @@ function createDiagnosticIssue(
   };
 }
 
-function selectThresholds(config: BlinkDetectionConfig): DiagnosticIssue['thresholds'] {
+function selectThresholds(config: BlinkDetectionConfig, samples: TestSignalSample[], timestampMs: number): DiagnosticIssue['thresholds'] {
+  const nearest = samples
+    .filter((sample) => Math.abs(sample.timestampMs - timestampMs) <= 500)
+    .sort((a, b) => Math.abs(a.timestampMs - timestampMs) - Math.abs(b.timestampMs - timestampMs))[0];
   return {
-    openThreshold: config.openThreshold,
-    closeThreshold: config.closeThreshold,
-    reopenThreshold: config.reopenThreshold,
+    openThreshold: nearest?.activeOpenThreshold ?? config.openThreshold,
+    closeThreshold: nearest?.activeCloseThreshold ?? config.closeThreshold,
+    reopenThreshold: nearest?.activeReopenThreshold ?? config.reopenThreshold,
     minBlinkDurationMs: config.minBlinkDurationMs,
     maxBlinkDurationMs: config.maxBlinkDurationMs,
     debounceMs: config.debounceMs,

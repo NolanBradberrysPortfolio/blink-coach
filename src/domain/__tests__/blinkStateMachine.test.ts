@@ -54,4 +54,16 @@ describe('BlinkStateMachine', () => {
     expect(run(machine, interrupted)).toBe(0);
     expect(run(machine, validBlinkSamples(700))).toBe(1);
   });
+
+  it('learns a lower open-eye baseline for goggles without changing normal signals', () => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    const lowSignalBlink: [number, number, boolean?][] = [
+      [0, 0.3], [100, 0.55], [200, 0.58], [300, 0.58], [400, 0.58],
+      [500, 0.18], [600, 0.18], [700, 0.18], [800, 0.18],
+      [900, 0.55], [1000, 0.58], [1100, 0.58], [1200, 0.58],
+    ];
+    expect(run(machine, lowSignalBlink)).toBe(1);
+    expect(machine.getActiveThresholds().adaptive).toBe(true);
+    expect(machine.getActiveThresholds().openThreshold).toBeLessThan(DEFAULT_BLINK_CONFIG.openThreshold);
+  });
 });

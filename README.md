@@ -16,6 +16,11 @@ This is not a medical device. It does not diagnose, treat, cure, or prevent dry 
 
 Before relying on it for a longer session, test once with the default 5-second reminder, then test calibration: **Calibrate → Begin Calibration → naturally open eyes → five natural blinks → three deliberate complete blinks**.
 
+If you wear goggles or tinted eye protection, Blink Coach automatically learns
+a conservative local open-eye baseline at the beginning of monitoring. The
+Developer overlay labels this as **relative baseline** and shows the active
+thresholds. Personal calibration is still recommended for the best result.
+
 ## How to test a prerecorded blink video
 
 Open **Developer / Test Lab** on the deployed iPhone app, tap **Choose local video**, and select a video from Photos or Files. Pause at each real blink, tap **MARK BLINK** (or **MARK INCOMPLETE BLINK** for a partial closure), and use **Remove** to correct labels. Tap **Analyze video** to run the current detector, then tap event/timeline markers and false-positive or missed-blink rows to inspect the signal graph and thresholds. **Import annotations** and **Export annotations** exchange JSON labels; **Save signal fixture** exports eye signals for offline regression without exporting video. Full details are in [`TEST_LAB.md`](TEST_LAB.md).

@@ -72,6 +72,12 @@ export class BlinkAnalysisPipeline {
       state: machineOutput.state,
       confidence: result.confidence,
       signalSource: result.signalSource,
+      activeOpenThreshold: machineOutput.thresholds.openThreshold,
+      activeCloseThreshold: machineOutput.thresholds.closeThreshold,
+      activeReopenThreshold: machineOutput.thresholds.reopenThreshold,
+      adaptiveThresholds: machineOutput.thresholds.adaptive,
+      openBaselineLeft: machineOutput.thresholds.baselineLeft,
+      openBaselineRight: machineOutput.thresholds.baselineRight,
     };
     return {
       result,
