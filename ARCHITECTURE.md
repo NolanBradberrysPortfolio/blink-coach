@@ -20,7 +20,7 @@ interface BlinkDetector {
 2. `createBlinkDetector()` selects `WebMediaPipeBlinkDetector` on web.
 3. The web detector loads the `@mediapipe/tasks-vision` browser bundle, creates `FaceLandmarker` in `VIDEO` mode with `outputFaceBlendshapes: true`, and prefers `eyeBlinkLeft`/`eyeBlinkRight` openness signals.
 4. If those blendshapes are unavailable, it derives a normalized openness signal from the standard eye landmarks using Eye Aspect Ratio.
-5. The provider schedules inference at the configured 10/15/20 FPS target, measures actual inference FPS, and never stores the video element, frame pixels, or detector output beyond the in-memory signal graph for the current session.
+5. The provider schedules inference at the configured 10/15/20/30 FPS target, measures actual inference FPS, and never stores the video element, frame pixels, or detector output beyond the in-memory signal graph for the current session.
 
 ## Shared live/video test path
 

@@ -112,19 +112,27 @@ function toEyeFrameResult(result: FaceLandmarkerResult, timestampMs: number): Ey
   const blendshapeScores = result.faceBlendshapes[0]?.categories ?? [];
   const leftBlink = findBlendshapeScore(blendshapeScores, ['eyeblinkleft', 'eyeblink_l']);
   const rightBlink = findBlendshapeScore(blendshapeScores, ['eyeblinkright', 'eyeblink_r']);
-  if (leftBlink !== null && rightBlink !== null) {
-    return {
-      timestampMs,
-      faceDetected: true,
-      leftEyeScore: 1 - leftBlink,
-      rightEyeScore: 1 - rightBlink,
-      confidence: 0.9,
-      signalSource: 'blendshape',
-    };
-  }
 
   const leftEar = eyeAspectRatio(landmarks, LEFT_EYE_INDICES);
   const rightEar = eyeAspectRatio(landmarks, RIGHT_EYE_INDICES);
+  if (leftBlink !== null && rightBlink !== null) {
+    const leftBlendshapeOpenness = 1 - leftBlink;
+    const rightBlendshapeOpenness = 1 - rightBlink;
+    const hasUsableLandmarks = leftEar !== null && rightEar !== null;
+    return {
+      timestampMs,
+      faceDetected: true,
+      leftEyeScore: hasUsableLandmarks
+        ? fuseEyeSignals(leftBlendshapeOpenness, earToOpenness(leftEar))
+        : leftBlendshapeOpenness,
+      rightEyeScore: hasUsableLandmarks
+        ? fuseEyeSignals(rightBlendshapeOpenness, earToOpenness(rightEar))
+        : rightBlendshapeOpenness,
+      confidence: 0.9,
+      signalSource: hasUsableLandmarks ? 'blendshape+landmark' : 'blendshape',
+    };
+  }
+
   if (leftEar === null || rightEar === null) {
     return {
       timestampMs,
@@ -171,4 +179,20 @@ function earToOpenness(ear: number): number {
   // Normalized Face Mesh EAR is roughly 0.08 when closed and 0.25 when open,
   // but calibration remains the authoritative source for blink thresholds.
   return Math.max(0, Math.min(1, (ear - 0.075) / 0.17));
+}
+
+/**
+ * Blendshape coefficients are the primary signal. When the landmark EAR
+ * agrees with them, a modest geometric contribution makes the detector less
+ * sensitive to eyewear and short eyelid closures. Strong disagreement leaves
+ * the learned blendshape signal in charge instead of allowing one unstable
+ * landmark frame to create a blink.
+ */
+function fuseEyeSignals(blendshapeOpenness: number, landmarkOpenness: number): number {
+  const difference = Math.abs(blendshapeOpenness - landmarkOpenness);
+  const geometricWeight = difference <= 0.38 ? 0.28 : 0;
+  return Math.max(
+    0,
+    Math.min(1, blendshapeOpenness * (1 - geometricWeight) + landmarkOpenness * geometricWeight),
+  );
 }

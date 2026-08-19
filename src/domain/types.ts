@@ -1,6 +1,6 @@
 export type BlinkState = 'OPEN' | 'CLOSING' | 'CLOSED' | 'OPENING' | 'INVALID';
 
-export type EyeSignalSource = 'blendshape' | 'landmark' | 'none';
+export type EyeSignalSource = 'blendshape' | 'blendshape+landmark' | 'landmark' | 'none';
 
 export type EyeCombinationRule = 'average' | 'minimum';
 
@@ -139,7 +139,7 @@ export interface AppSettings {
   lowDistractionMode: boolean;
   cameraPreviewVisible: boolean;
   developerMode: boolean;
-  inferenceFps: 10 | 15 | 20;
+  inferenceFps: 10 | 15 | 20 | 30;
   manualThresholdsEnabled: boolean;
   manualThresholds: ManualThresholds;
 }
@@ -151,7 +151,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lowDistractionMode: false,
   cameraPreviewVisible: true,
   developerMode: false,
-  inferenceFps: 15,
+  inferenceFps: 30,
   manualThresholdsEnabled: false,
   manualThresholds: {
     openThreshold: DEFAULT_BLINK_CONFIG.openThreshold,
