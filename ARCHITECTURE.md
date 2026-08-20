@@ -43,13 +43,13 @@ local prerecorded HTMLVideoElement ───────┘
 
 ## Blink logic
 
-The state machine smooths each eye independently, combines both eyes with an asymmetry guard, and requires a clean sequence:
+The state machine smooths each eye independently, normally combines both eyes with an asymmetry guard, and also accepts a sustained single-eye closure when the other eye remains open. Both paths require the same clean sequence:
 
 ```text
 OPEN → CLOSING → CLOSED → OPENING → OPEN
 ```
 
-Face loss resets the state by default. Minimum/maximum closure duration, close/open frame counts, smoothing, eye-combination rule, confidence minimum, missing-frame tolerance, incomplete closure threshold, and debounce are centralized configuration values. Events carry closure depth, duration, and symmetry so the experimental classifier can be replaced without changing session logic.
+Face loss resets the state by default. Minimum/maximum closure duration, close/open frame counts, smoothing, eye-combination rule, single-eye open ratio, confidence minimum, missing-frame tolerance, incomplete closure threshold, and debounce are centralized configuration values. Events carry closure depth, duration, and symmetry so the experimental classifier can be replaced without changing session logic.
 
 The state machine also has a conservative low-signal baseline mode. During the
 first part of a session it records a high-water mark for each eye. If the

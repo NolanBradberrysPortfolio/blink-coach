@@ -5,8 +5,16 @@ function frame(timestampMs: number, openness: number, faceDetected = true): EyeF
   return { timestampMs, faceDetected, leftEyeScore: faceDetected ? openness : null, rightEyeScore: faceDetected ? openness : null };
 }
 
+function pairFrame(timestampMs: number, left: number, right: number): EyeFrameResult {
+  return { timestampMs, faceDetected: true, leftEyeScore: left, rightEyeScore: right };
+}
+
 function run(machine: BlinkStateMachine, samples: [number, number, boolean?][]): number {
   return samples.reduce((events, [timestamp, openness, face]) => events + (machine.process(frame(timestamp, openness, face)).event ? 1 : 0), 0);
+}
+
+function runPairs(machine: BlinkStateMachine, samples: [number, number, number][]): number {
+  return samples.reduce((events, [timestamp, left, right]) => events + (machine.process(pairFrame(timestamp, left, right)).event ? 1 : 0), 0);
 }
 
 function validBlinkSamples(start = 0): [number, number, boolean?][] {
@@ -22,6 +30,17 @@ describe('BlinkStateMachine', () => {
   it('counts one physical blink exactly once', () => {
     const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
     expect(run(machine, validBlinkSamples())).toBe(1);
+    expect(machine.getState()).toBe('OPEN');
+  });
+
+  it('counts a sustained blink in either eye exactly once', () => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    const leftEyeBlink: [number, number, number][] = [
+      [0, 0.9, 0.9], [66, 0.9, 0.9], [132, 0.9, 0.9],
+      [198, 0.1, 0.9], [264, 0.1, 0.9], [330, 0.1, 0.9], [396, 0.1, 0.9], [462, 0.1, 0.9], [528, 0.1, 0.9],
+      [594, 0.95, 0.9], [660, 0.95, 0.9], [726, 0.95, 0.9],
+    ];
+    expect(runPairs(machine, leftEyeBlink)).toBe(1);
     expect(machine.getState()).toBe('OPEN');
   });
 
