@@ -15,6 +15,8 @@ export interface BlinkProcessOutput {
   thresholds: ActiveBlinkThresholds;
 }
 
+type ClosureMode = 'both' | 'left' | 'right';
+
 /**
  * Converts a stream of eye openness samples into one-shot blink events.
  * This class contains no camera or MediaPipe knowledge and is deterministic
@@ -33,6 +35,7 @@ export class BlinkStateMachine {
   private leftMaxClosureDepth = 0;
   private rightMaxClosureDepth = 0;
   private symmetryAtMax = 1;
+  private closureMode: ClosureMode | null = null;
   private lastValidTimestampMs: number | null = null;
   private baselineStartedAtMs: number | null = null;
   private baselineLeft: number | null = null;
@@ -63,6 +66,7 @@ export class BlinkStateMachine {
     this.leftMaxClosureDepth = 0;
     this.rightMaxClosureDepth = 0;
     this.symmetryAtMax = 1;
+    this.closureMode = null;
     this.lastValidTimestampMs = null;
     this.baselineStartedAtMs = null;
     this.baselineLeft = null;
@@ -112,9 +116,25 @@ export class BlinkStateMachine {
         : (leftSmoothed + rightSmoothed) / 2;
     const asymmetry = Math.abs(leftSmoothed - rightSmoothed);
     const isOpen = combined >= thresholds.openThreshold;
-    const isReopened = combined >= thresholds.reopenThreshold && asymmetry <= this.config.maxEyeAsymmetry;
-    const isClosed =
-      combined <= thresholds.closeThreshold && asymmetry <= this.config.maxEyeAsymmetry;
+    const singleEyeOpenThreshold = this.singleEyeOpenThreshold(thresholds);
+    const bothEyesClosed = combined <= thresholds.closeThreshold && asymmetry <= this.config.maxEyeAsymmetry;
+    const leftEyeClosedAlone =
+      this.config.allowSingleEyeBlinks !== false &&
+      leftSmoothed <= thresholds.closeThreshold &&
+      rightSmoothed >= singleEyeOpenThreshold;
+    const rightEyeClosedAlone =
+      this.config.allowSingleEyeBlinks !== false &&
+      rightSmoothed <= thresholds.closeThreshold &&
+      leftSmoothed >= singleEyeOpenThreshold;
+    const closedMode: ClosureMode | null = bothEyesClosed
+      ? 'both'
+      : leftEyeClosedAlone
+        ? 'left'
+        : rightEyeClosedAlone
+          ? 'right'
+          : null;
+    const isClosed = closedMode !== null;
+    const isReopened = this.isReopened(leftSmoothed, rightSmoothed, combined, asymmetry, thresholds, singleEyeOpenThreshold);
     const timestamp = result.timestampMs;
 
     if (isOpen && this.state === 'OPEN') {
@@ -131,6 +151,7 @@ export class BlinkStateMachine {
         this.closedFrameCount >= this.config.closeFramesRequired
       ) {
         this.state = 'CLOSING';
+        this.closureMode = closedMode ?? 'both';
         this.closureStartMs = timestamp;
         this.leftMaxClosureDepth = 1 - leftSmoothed;
         this.rightMaxClosureDepth = 1 - rightSmoothed;
@@ -145,6 +166,7 @@ export class BlinkStateMachine {
       if (!isClosed && isReopened) {
         // A close that immediately bounces open is not a valid blink.
         this.state = 'OPEN';
+        this.closureMode = null;
         this.closureStartMs = null;
         this.closedFrameCount = 0;
       } else if (closureDuration > this.config.maxBlinkDurationMs) {
@@ -198,6 +220,7 @@ export class BlinkStateMachine {
             : null;
         this.cooldownUntilMs = timestamp + this.config.debounceMs;
         this.state = 'OPEN';
+        this.closureMode = null;
         this.closureStartMs = null;
         this.closedFrameCount = 0;
         this.openFrameCount = 0;
@@ -215,6 +238,7 @@ export class BlinkStateMachine {
       this.openFrameCount += 1;
       if (this.openFrameCount >= this.config.openFramesRequired) {
         this.state = 'OPEN';
+        this.closureMode = null;
         this.hasEstablishedOpen = true;
         this.closedFrameCount = 0;
         this.closureStartMs = null;
@@ -223,6 +247,28 @@ export class BlinkStateMachine {
       this.openFrameCount = 0;
     }
     return this.output(null, thresholds);
+  }
+
+  private isReopened(
+    left: number,
+    right: number,
+    combined: number,
+    asymmetry: number,
+    thresholds: ActiveBlinkThresholds,
+    singleEyeOpenThreshold: number,
+  ): boolean {
+    if (this.closureMode === 'left') {
+      return left >= thresholds.reopenThreshold && right >= singleEyeOpenThreshold;
+    }
+    if (this.closureMode === 'right') {
+      return right >= thresholds.reopenThreshold && left >= singleEyeOpenThreshold;
+    }
+    return combined >= thresholds.reopenThreshold && asymmetry <= this.config.maxEyeAsymmetry;
+  }
+
+  private singleEyeOpenThreshold(thresholds: ActiveBlinkThresholds): number {
+    const ratio = clamp(this.config.singleEyeOpenRatio ?? 0.72, 0.5, 0.95);
+    return thresholds.openThreshold * ratio;
   }
 
   private updateClosureExtrema(asymmetry: number): void {

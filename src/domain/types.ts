@@ -35,6 +35,10 @@ export interface BlinkDetectionConfig {
   missingFrameToleranceMs: number;
   incompleteClosureThreshold: number;
   completeBlinkMaxDurationMs: number;
+  /** Count a sustained closure in either eye when the other eye stays open. */
+  allowSingleEyeBlinks?: boolean;
+  /** Fraction of the active open threshold that the other eye must retain. */
+  singleEyeOpenRatio?: number;
   /**
    * Some eyewear (including dark eye-protection goggles) shifts MediaPipe's
    * eye-openness scores downward without removing the useful blink pattern.
@@ -73,6 +77,8 @@ export const DEFAULT_BLINK_CONFIG: BlinkDetectionConfig = {
   missingFrameToleranceMs: 0,
   incompleteClosureThreshold: 0.58,
   completeBlinkMaxDurationMs: 550,
+  allowSingleEyeBlinks: true,
+  singleEyeOpenRatio: 0.72,
   adaptiveBaselineEnabled: true,
   adaptiveBaselineWarmupMs: 1800,
   adaptiveOpenRatio: 0.84,

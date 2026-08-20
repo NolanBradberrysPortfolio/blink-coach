@@ -68,6 +68,11 @@ export function DeveloperOverlay({ embedded = false }: { embedded?: boolean }): 
           <LabeledValue style={styles.signalItem} dark={embedded} label="Mode" value={latestSample?.adaptiveThresholds ? 'relative baseline' : 'global/calibrated'} />
           <LabeledValue style={styles.signalItem} dark={embedded} label="Live baseline" value={formatPair(latestSample?.openBaselineLeft, latestSample?.openBaselineRight)} />
         </View>
+        <View style={styles.signalRow}>
+          <LabeledValue style={styles.signalItem} dark={embedded} label="Single-eye" value={coach.effectiveConfig.allowSingleEyeBlinks === false ? 'off' : 'on'} />
+          <LabeledValue style={styles.signalItem} dark={embedded} label="Other open" value={formatDecimal(coach.effectiveConfig.singleEyeOpenRatio ?? 0.72, 2)} />
+          <LabeledValue style={styles.signalItem} dark={embedded} label="Combine" value={coach.effectiveConfig.eyeCombination} />
+        </View>
         <Text style={[styles.subheading, embedded && styles.darkText]}>Calibration values</Text>
         <View style={styles.signalRow}>
           <LabeledValue style={styles.calibrationItem} dark={embedded} label="Open baseline" value={calibration ? `${formatDecimal(calibration.openLeft, 2)} / ${formatDecimal(calibration.openRight, 2)}` : 'not set'} />
