@@ -48,8 +48,8 @@ export default function SettingsScreen(): React.ReactElement {
 
       <SectionTitle>Privacy</SectionTitle>
       <Card style={styles.privacyCard}>
-        <Text style={styles.privacyTitle}>Everything stays on this device</Text>
-        <Text style={styles.privacyText}>Blink Coach does not create an account, upload camera frames, save video, run analytics, track you, or show ads. Session summaries and settings are stored locally in this browser.</Text>
+        <Text style={styles.privacyTitle}>Local monitoring, optional reports</Text>
+        <Text style={styles.privacyText}>Normal monitoring never saves or uploads video. Session summaries and settings stay local. Optional diagnostic reports let you record, review, and explicitly send a short silent clip to a private troubleshooting inbox. Access expires after 7 days, with scheduled deletion and a delete option on your receipt. No analytics, tracking, accounts, or ads.</Text>
       </Card>
 
       <SecondaryButton label="Open Developer / Test Lab" onPress={() => router.push('/lab')} />

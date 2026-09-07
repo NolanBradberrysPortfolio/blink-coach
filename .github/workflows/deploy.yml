@@ -46,6 +46,7 @@ jobs:
         run: npx expo export --platform web --output-dir dist
         env:
           EXPO_PUBLIC_BASE_URL: /${{ github.event.repository.name }}
+          EXPO_PUBLIC_APP_REVISION: ${{ github.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Add GitHub Pages SPA fallback

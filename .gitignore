@@ -28,6 +28,7 @@ yarn-error.*
 
 # Blink Detector Test Lab generated reports
 reports/*.json
+reports/private/
 
 # macOS
 .DS_Store

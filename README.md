@@ -26,6 +26,21 @@ Changing thresholds cannot recover eyelid motion that the model cannot see.
 
 ## How to test a prerecorded blink video
 
+### Report missed blinks without the Test Lab
+
+This feature is implemented but awaiting approval to enable public submissions;
+it is not on the live app yet. See the activation status in DIAGNOSTIC_REPORTS.md.
+
+Use **Missing my blinks?** on Home to record five or ten natural blinks at the
+problem angle. Review the silent clip, confirm your actual count, and explicitly
+consent before sending it to the private diagnostic inbox. A receipt lets you
+delete the report. This optional upload is separate from normal local-only
+monitoring. See [diagnostic reports](DIAGNOSTIC_REPORTS.md) for privacy, retention,
+review instructions, and limitations. Sending evidence does not automatically
+change calibration or start a coding-agent run.
+
+### Local Test Lab
+
 Open **Developer / Test Lab** on the deployed iPhone app, tap **Choose local video**, and select a video from Photos or Files. Pause at each real blink, tap **MARK BLINK** (or **MARK INCOMPLETE BLINK** for a partial closure), and use **Remove** to correct labels. Tap **Analyze video** to run the current detector, then tap event/timeline markers and false-positive or missed-blink rows to inspect the signal graph and thresholds. **Import annotations** and **Export annotations** exchange JSON labels; **Save signal fixture** exports eye signals for offline regression without exporting video. Full details are in [`TEST_LAB.md`](TEST_LAB.md).
 
 ## How deployment works
@@ -72,7 +87,11 @@ See `ARCHITECTURE.md` for the detector boundary and future native connection poi
 
 See [`TEST_LAB.md`](TEST_LAB.md) for the prerecorded-video test workflow, annotation format, regression reports, baseline policy, parameter search, and public-dataset guidance. Open **Developer / Test Lab** in the iPhone app to choose a local video, mark known blinks, run the shared detector pipeline, and inspect false positives or missed blinks.
 
-The browser loads the `@mediapipe/tasks-vision` browser bundle, its WASM runtime, and the face-landmarker model when monitoring starts. These are code/model downloads only; camera frames are processed locally in the browser and are never uploaded or saved. There is no backend, account, cloud database, analytics, tracking, or advertising.
+The browser downloads the MediaPipe runtime/model when monitoring starts.
+Normal monitoring processes camera frames locally and never records/uploads
+them. Only the optional, separately consented diagnostic report feature uses a
+private backend for short recordings. There are no user accounts, analytics,
+tracking, or advertisements.
 
 ## Useful commands
 

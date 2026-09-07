@@ -91,6 +91,7 @@ export default function HomeScreen(): React.ReactElement {
       </View>
 
       <SectionTitle>Explore</SectionTitle>
+      <SecondaryButton label="Missing my blinks?" onPress={() => router.push('/report')} />
       <View style={styles.actionGrid}>
         <ActionTile icon="⚙" title="Settings" description="Reminder & display" onPress={() => router.push('/settings')} />
         <ActionTile icon="◷" title="History" description="Your local sessions" onPress={() => router.push('/history')} />
@@ -102,7 +103,7 @@ export default function HomeScreen(): React.ReactElement {
 
       <View style={styles.privacyNote}>
         <Text style={styles.privacyTitle}>Private by design</Text>
-        <Text style={styles.privacyText}>Blink Coach processes your camera locally in this browser. No account, upload, tracking, ads, analytics, or saved camera frames.</Text>
+        <Text style={styles.privacyText}>Normal monitoring processes your camera locally, without saving or uploading frames. Optional diagnostic reports record and send a short clip only with your explicit consent. No tracking, ads, or analytics.</Text>
       </View>
     </Page>
   );

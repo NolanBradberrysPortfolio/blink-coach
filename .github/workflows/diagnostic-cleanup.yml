@@ -1,0 +1,19 @@
+name: Delete expired diagnostic reports
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions: {}
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Remove expired private recordings
+        env:
+          CLEANUP_TOKEN: ${{ secrets.DIAGNOSTIC_CLEANUP_TOKEN }}
+        run: |
+          if [ -z "$CLEANUP_TOKEN" ]; then echo 'Cleanup credential missing'; exit 1; fi
+          curl --fail-with-body --silent --show-error --max-time 120 --request POST \
+            --header "Authorization: Bearer $CLEANUP_TOKEN" \
+            https://blink-coach-diagnostics.buck-bradberry.chatgpt.site/api/reports/cleanup

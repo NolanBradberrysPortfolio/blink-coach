@@ -89,4 +89,12 @@ The following should remain unchanged: React Native screens, settings, AsyncStor
 
 ## Privacy boundary
 
-The only network requests made for vision are browser code/WASM/model downloads. No endpoint accepts camera frames. Session summaries, settings, and calibration are stored locally through AsyncStorage; there is no account, backend, analytics, ad SDK, or cloud sync.
+Normal monitoring remains local-only. `/report` is an explicit opt-in exception:
+the user starts a silent MediaRecorder clip, reviews it, confirms a count, and
+consents before `src/diagnostics/upload.ts` sends it to the separate private
+diagnostics service. The report uses `createBlinkDetector`, `FrameGate`, and
+`BlinkAnalysisPipeline`, not another blink algorithm. Ordinary session state,
+settings/history, reminder rules, and the detector defaults are unchanged.
+See `DIAGNOSTIC_REPORTS.md` for the server boundary, deletion and review policy.
+
+During ordinary monitoring, the only vision network requests are browser code/WASM/model downloads; camera frames stay on the device. Session summaries, settings, and calibration are stored locally through AsyncStorage. There are no accounts, analytics, ads, or cloud synchronization. The optional diagnostic service described above is the sole video-upload exception.
