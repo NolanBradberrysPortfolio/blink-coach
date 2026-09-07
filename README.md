@@ -28,8 +28,8 @@ Changing thresholds cannot recover eyelid motion that the model cannot see.
 
 ### Report missed blinks without the Test Lab
 
-This feature is implemented but awaiting approval to enable public submissions;
-it is not on the live app yet. See the activation status in DIAGNOSTIC_REPORTS.md.
+Open [the report screen](https://nolanbradberrysportfolio.github.io/blink-coach/report)
+to submit a private diagnostic clip.
 
 Use **Missing my blinks?** on Home to record five or ten natural blinks at the
 problem angle. Review the silent clip, confirm your actual count, and explicitly

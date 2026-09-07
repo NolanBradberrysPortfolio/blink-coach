@@ -2,13 +2,11 @@
 
 ## Activation status
 
-Implemented and locally tested; not yet enabled on the public PWA. The separate
-Sites service is deployed owner-only. Public intake awaits explicit approval.
-After approval: change the service audience to public and publish, verify HTTPS
-submission/private retrieval/deletion with synthetic data, then merge this app
-change to main. Its existing Pages workflow deploys the button; the added cleanup
-workflow must also be enabled and successfully run. Do not release the button
-against an owner-only service. The review and cleanup secrets are already configured.
+Public submissions were approved on September 7, 2026. The service is publicly
+reachable, while video retrieval remains owner-secret protected. HTTPS consent,
+upload/retry, private retrieval and deletion passed synthetic integration tests.
+Merging to main publishes the report button through the existing Pages workflow.
+The hourly cleanup workflow must remain enabled; check failures regularly.
 
 ## On iPhone
 
