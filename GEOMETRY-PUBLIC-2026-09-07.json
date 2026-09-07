@@ -1,0 +1,303 @@
+{
+  "clips": [
+    {
+      "name": "final-comparison1.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 900,
+      "sameSignals": false,
+      "currentFaceFrames": 900,
+      "before": {
+        "actualCount": 3,
+        "predictedCount": 3,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "blinkCountError": 0,
+        "meanTimingErrorMs": 44.44444444444283,
+        "medianTimingErrorMs": 50
+      },
+      "after": {
+        "actualCount": 3,
+        "predictedCount": 3,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "blinkCountError": 0,
+        "meanTimingErrorMs": 27.777777777776162,
+        "medianTimingErrorMs": 33.33333333333212
+      }
+    },
+    {
+      "name": "final-comparison2.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 840,
+      "sameSignals": false,
+      "currentFaceFrames": 840,
+      "before": {
+        "actualCount": 10,
+        "predictedCount": 10,
+        "truePositives": 10,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "blinkCountError": 0,
+        "meanTimingErrorMs": 40.00000000000082,
+        "medianTimingErrorMs": 33.33333333333576
+      },
+      "after": {
+        "actualCount": 10,
+        "predictedCount": 10,
+        "truePositives": 10,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "blinkCountError": 0,
+        "meanTimingErrorMs": 43.3333333333343,
+        "medianTimingErrorMs": 33.33333333333303
+      }
+    },
+    {
+      "name": "final-comparison3.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 900,
+      "sameSignals": false,
+      "currentFaceFrames": 900,
+      "before": {
+        "actualCount": 6,
+        "predictedCount": 4,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 2,
+        "precision": 1,
+        "recall": 0.6666666666666666,
+        "f1": 0.8,
+        "blinkCountError": -2,
+        "meanTimingErrorMs": 79.16666666666652,
+        "medianTimingErrorMs": 66.66666666666652
+      },
+      "after": {
+        "actualCount": 6,
+        "predictedCount": 5,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "precision": 1,
+        "recall": 0.8333333333333334,
+        "f1": 0.9090909090909091,
+        "blinkCountError": -1,
+        "meanTimingErrorMs": 106.66666666666606,
+        "medianTimingErrorMs": 50
+      }
+    },
+    {
+      "name": "final-comparison4.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 854,
+      "sameSignals": false,
+      "currentFaceFrames": 854,
+      "before": {
+        "actualCount": 6,
+        "predictedCount": 5,
+        "truePositives": 4,
+        "falsePositives": 1,
+        "falseNegatives": 2,
+        "precision": 0.8,
+        "recall": 0.6666666666666666,
+        "f1": 0.7272727272727272,
+        "blinkCountError": -1,
+        "meanTimingErrorMs": 54.16666666666811,
+        "medianTimingErrorMs": 50.00000000000273
+      },
+      "after": {
+        "actualCount": 6,
+        "predictedCount": 5,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "precision": 1,
+        "recall": 0.8333333333333334,
+        "f1": 0.9090909090909091,
+        "blinkCountError": -1,
+        "meanTimingErrorMs": 63.33333333333267,
+        "medianTimingErrorMs": 50
+      }
+    },
+    {
+      "name": "final-comparison8.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 900,
+      "sameSignals": false,
+      "currentFaceFrames": 900,
+      "before": {
+        "actualCount": 5,
+        "predictedCount": 1,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 4,
+        "precision": 1,
+        "recall": 0.2,
+        "f1": 0.33333333333333337,
+        "blinkCountError": -4,
+        "meanTimingErrorMs": 0,
+        "medianTimingErrorMs": 0
+      },
+      "after": {
+        "actualCount": 5,
+        "predictedCount": 5,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "blinkCountError": 0,
+        "meanTimingErrorMs": 66.6666666666662,
+        "medianTimingErrorMs": 66.66666666666674
+      }
+    },
+    {
+      "name": "final-comparison9.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 883,
+      "sameSignals": false,
+      "currentFaceFrames": 883,
+      "before": {
+        "actualCount": 8,
+        "predictedCount": 7,
+        "truePositives": 7,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "precision": 1,
+        "recall": 0.875,
+        "f1": 0.9333333333333333,
+        "blinkCountError": -1,
+        "meanTimingErrorMs": 59.523809523808595,
+        "medianTimingErrorMs": 49.99999999999818
+      },
+      "after": {
+        "actualCount": 8,
+        "predictedCount": 9,
+        "truePositives": 8,
+        "falsePositives": 1,
+        "falseNegatives": 0,
+        "precision": 0.8888888888888888,
+        "recall": 1,
+        "f1": 0.9411764705882353,
+        "blinkCountError": 1,
+        "meanTimingErrorMs": 75.00000000000108,
+        "medianTimingErrorMs": 58.33333333333303
+      }
+    },
+    {
+      "name": "final-comparison10.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 854,
+      "sameSignals": false,
+      "currentFaceFrames": 854,
+      "before": {
+        "actualCount": 6,
+        "predictedCount": 5,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "precision": 1,
+        "recall": 0.8333333333333334,
+        "f1": 0.9090909090909091,
+        "blinkCountError": -1,
+        "meanTimingErrorMs": 43.33333333333312,
+        "medianTimingErrorMs": 33.33333333333576
+      },
+      "after": {
+        "actualCount": 6,
+        "predictedCount": 5,
+        "truePositives": 5,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "precision": 1,
+        "recall": 0.8333333333333334,
+        "f1": 0.9090909090909091,
+        "blinkCountError": -1,
+        "meanTimingErrorMs": 126.66666666666761,
+        "medianTimingErrorMs": 150
+      }
+    },
+    {
+      "name": "final-comparison11.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 900,
+      "sameSignals": false,
+      "currentFaceFrames": 900,
+      "before": {
+        "actualCount": 5,
+        "predictedCount": 4,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889,
+        "blinkCountError": -1,
+        "meanTimingErrorMs": 54.16666666666583,
+        "medianTimingErrorMs": 58.333333333331666
+      },
+      "after": {
+        "actualCount": 5,
+        "predictedCount": 4,
+        "truePositives": 4,
+        "falsePositives": 0,
+        "falseNegatives": 1,
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889,
+        "blinkCountError": -1,
+        "meanTimingErrorMs": 87.50000000000034,
+        "medianTimingErrorMs": 91.66666666666674
+      }
+    }
+  ],
+  "before": {
+    "actualCount": 49,
+    "truePositives": 38,
+    "falsePositives": 1,
+    "falseNegatives": 11,
+    "precision": 0.9743589743589743,
+    "recall": 0.7755102040816326,
+    "f1": 0.8636363636363635,
+    "meanTimingErrorMs": 50.438596491228004
+  },
+  "after": {
+    "actualCount": 49,
+    "truePositives": 45,
+    "falsePositives": 1,
+    "falseNegatives": 4,
+    "precision": 0.9782608695652174,
+    "recall": 0.9183673469387755,
+    "f1": 0.9473684210526316,
+    "meanTimingErrorMs": 72.9629629629632
+  },
+  "delta": {
+    "precision": 0.0039018952062430667,
+    "recall": 0.1428571428571429,
+    "f1": 0.0837320574162681,
+    "falsePositives": 0,
+    "falseNegatives": -7
+  }
+}

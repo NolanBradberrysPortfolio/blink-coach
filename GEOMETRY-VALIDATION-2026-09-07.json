@@ -1,0 +1,99 @@
+{
+  "clips": [
+    {
+      "name": "final-holdout2.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 900,
+      "sameSignals": false,
+      "currentFaceFrames": 900,
+      "before": {
+        "actualCount": 7,
+        "predictedCount": 7,
+        "truePositives": 7,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "blinkCountError": 0,
+        "meanTimingErrorMs": 38.09523809523931,
+        "medianTimingErrorMs": 50
+      },
+      "after": {
+        "actualCount": 7,
+        "predictedCount": 7,
+        "truePositives": 7,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "blinkCountError": 0,
+        "meanTimingErrorMs": 35.71428571428597,
+        "medianTimingErrorMs": 33.33333333333576
+      }
+    },
+    {
+      "name": "final-holdout4.json",
+      "revision": "0d07723",
+      "frames": 900,
+      "faceFrames": 900,
+      "sameSignals": false,
+      "currentFaceFrames": 900,
+      "before": {
+        "actualCount": 6,
+        "predictedCount": 3,
+        "truePositives": 3,
+        "falsePositives": 0,
+        "falseNegatives": 3,
+        "precision": 1,
+        "recall": 0.5,
+        "f1": 0.6666666666666666,
+        "blinkCountError": -3,
+        "meanTimingErrorMs": 38.888888888889596,
+        "medianTimingErrorMs": 16.66666666666879
+      },
+      "after": {
+        "actualCount": 6,
+        "predictedCount": 6,
+        "truePositives": 6,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "blinkCountError": 0,
+        "meanTimingErrorMs": 63.88888888888778,
+        "medianTimingErrorMs": 41.66666666666242
+      }
+    }
+  ],
+  "before": {
+    "actualCount": 13,
+    "truePositives": 10,
+    "falsePositives": 0,
+    "falseNegatives": 3,
+    "precision": 1,
+    "recall": 0.7692307692307693,
+    "f1": 0.8695652173913044,
+    "meanTimingErrorMs": 38.333333333334394
+  },
+  "after": {
+    "actualCount": 13,
+    "truePositives": 13,
+    "falsePositives": 0,
+    "falseNegatives": 0,
+    "precision": 1,
+    "recall": 1,
+    "f1": 1,
+    "meanTimingErrorMs": 48.717948717948346
+  },
+  "delta": {
+    "precision": 0,
+    "recall": 0.23076923076923073,
+    "f1": 0.13043478260869557,
+    "falsePositives": 0,
+    "falseNegatives": -3
+  }
+}

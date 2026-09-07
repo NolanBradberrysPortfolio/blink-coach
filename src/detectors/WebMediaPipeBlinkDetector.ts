@@ -1,5 +1,6 @@
 import type { FaceLandmarkerResult, NormalizedLandmark } from '@mediapipe/tasks-vision';
 import { BlinkDetector, EyeFrameResult } from '../domain/types';
+import { geometryOpenness, pixelEyeAspectRatio } from './eyeGeometry';
 
 type MediaPipeVisionModule = typeof import('@mediapipe/tasks-vision');
 const VISION_BUNDLE_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/vision_bundle.js';
@@ -16,6 +17,7 @@ export interface WebMediaPipeBlinkDetectorOptions {
   modelAssetPath?: string;
   wasmRoot?: string;
   useGpu?: boolean;
+  signalMode?: 'geometry' | 'hybrid';
 }
 
 /**
@@ -31,6 +33,7 @@ export class WebMediaPipeBlinkDetector implements BlinkDetector {
       modelAssetPath: options.modelAssetPath ?? MODEL_ASSET_PATH,
       wasmRoot: options.wasmRoot ?? WASM_ROOT,
       useGpu: options.useGpu ?? true,
+      signalMode: options.signalMode ?? 'geometry',
     };
   }
 
@@ -66,7 +69,8 @@ export class WebMediaPipeBlinkDetector implements BlinkDetector {
   async processFrame(frame: unknown, timestampMs: number): Promise<EyeFrameResult> {
     if (!this.landmarker) throw new Error('MediaPipe has not been initialized.');
     const result = this.landmarker.detectForVideo(frame as HTMLVideoElement, timestampMs);
-    return toEyeFrameResult(result, timestampMs);
+    const video = frame as HTMLVideoElement;
+    return toEyeFrameResult(result, timestampMs, this.options.signalMode, video.videoWidth, video.videoHeight);
   }
 
   async dispose(): Promise<void> {
@@ -101,7 +105,7 @@ function loadVisionBundle(): Promise<MediaPipeVisionModule> {
   });
 }
 
-function toEyeFrameResult(result: FaceLandmarkerResult, timestampMs: number): EyeFrameResult {
+function toEyeFrameResult(result: FaceLandmarkerResult, timestampMs: number, mode: 'geometry' | 'hybrid', width: number, height: number): EyeFrameResult {
   const landmarks = result.faceLandmarks[0];
   if (!landmarks) {
     return {
@@ -110,6 +114,23 @@ function toEyeFrameResult(result: FaceLandmarkerResult, timestampMs: number): Ey
       leftEyeScore: null,
       rightEyeScore: null,
       signalSource: 'none',
+    };
+  }
+
+  if (mode === 'geometry') {
+    const leftEar = pixelEyeAspectRatio(landmarks, LEFT_EYE_INDICES, width, height);
+    const rightEar = pixelEyeAspectRatio(landmarks, RIGHT_EYE_INDICES, width, height);
+    const categories = result.faceBlendshapes[0]?.categories ?? [];
+    const leftEvidence = findBlendshapeScore(categories, ['eyeblinkleft', 'eyeblink_l']);
+    const rightEvidence = findBlendshapeScore(categories, ['eyeblinkright', 'eyeblink_r']);
+    return {
+      timestampMs, faceDetected: true,
+      leftEyeScore: leftEar === null ? null : geometryOpenness(leftEar),
+      rightEyeScore: rightEar === null ? null : geometryOpenness(rightEar),
+      leftEyeAspectRatio: leftEar, rightEyeAspectRatio: rightEar,
+      closureEvidence: leftEvidence === null || rightEvidence === null ? undefined : Math.max(leftEvidence, rightEvidence),
+      confidence: leftEar === null || rightEar === null ? 0 : 0.9,
+      signalSource: 'landmark',
     };
   }
 

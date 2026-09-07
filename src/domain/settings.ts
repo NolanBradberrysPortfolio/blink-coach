@@ -1,5 +1,17 @@
-import { BlinkDetectionConfig, AppSettings, CalibrationProfile, DEFAULT_BLINK_CONFIG } from './types';
+import { BlinkDetectionConfig, AppSettings, CalibrationProfile, DEFAULT_BLINK_CONFIG, DEFAULT_SETTINGS, DETECTOR_PROFILE_VERSION } from './types';
 import { clamp } from './math';
+
+/** Preserve preferences but never apply manual thresholds from a different scale. */
+export function migrateDetectorSettings(stored: Partial<AppSettings>): AppSettings {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...stored,
+    detectorProfileVersion: DETECTOR_PROFILE_VERSION,
+    manualThresholdsEnabled: stored.detectorProfileVersion === DETECTOR_PROFILE_VERSION
+      ? stored.manualThresholdsEnabled ?? false : false,
+    manualThresholds: { ...DEFAULT_SETTINGS.manualThresholds, ...stored.manualThresholds },
+  };
+}
 
 export function effectiveReminderIntervalSeconds(settings: AppSettings): number {
   if (settings.reminderIntervalSeconds === -1) {

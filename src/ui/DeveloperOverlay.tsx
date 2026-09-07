@@ -51,7 +51,13 @@ export function DeveloperOverlay({ embedded = false }: { embedded?: boolean }): 
           <LabeledValue style={styles.signalItem} dark={embedded} label="Right" value={formatNullable(result?.rightEyeScore)} />
           <LabeledValue style={styles.signalItem} dark={embedded} label="Source" value={result?.signalSource ?? DASH} />
         </View>
-        <Text style={[styles.subheading, embedded && styles.darkText]}>Smoothed signal</Text>
+        <Text style={[styles.subheading, embedded && styles.darkText]}>Eye geometry (EAR) · {latestSample?.eyeSignalReady ? 'armed' : 'waiting for open eyes'}</Text>
+        <View style={styles.signalRow}>
+          <LabeledValue style={styles.calibrationItem} dark={embedded} label="Left EAR" value={formatNullable(result?.leftEyeAspectRatio)} />
+          <LabeledValue style={styles.calibrationItem} dark={embedded} label="Right EAR" value={formatNullable(result?.rightEyeAspectRatio)} />
+        </View>
+        <Text style={[styles.subheading, embedded && styles.darkText]}>Smoothed / baseline-adjusted signal</Text>
+        <LabeledValue style={styles.fullWidth} dark={embedded} label="Closure confirmation (0–1)" value={formatNullable(result?.closureEvidence)} />
         <View style={styles.signalRow}>
           <LabeledValue style={styles.signalItem} dark={embedded} label="Left" value={formatNullable(coach.signalHistory.at(-1)?.smoothedLeft)} />
           <LabeledValue style={styles.signalItem} dark={embedded} label="Right" value={formatNullable(coach.signalHistory.at(-1)?.smoothedRight)} />

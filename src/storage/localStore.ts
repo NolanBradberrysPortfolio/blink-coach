@@ -3,12 +3,15 @@ import {
   AppSettings,
   CalibrationProfile,
   DEFAULT_SETTINGS,
+  DETECTOR_PROFILE_VERSION,
   SessionSummary,
 } from '../domain/types';
 import { VideoAnnotationDocument } from '../domain/testLabTypes';
+import { migrateDetectorSettings } from '../domain/settings';
 
 const SETTINGS_KEY = '@blink-coach/settings/v1';
-const CALIBRATION_KEY = '@blink-coach/calibration/v1';
+// Retain legacy profiles under their old key; their score scale is incompatible.
+const CALIBRATION_KEY = `@blink-coach/calibration/${DETECTOR_PROFILE_VERSION}`;
 const HISTORY_KEY = '@blink-coach/history/v1';
 const TEST_ANNOTATIONS_KEY = '@blink-coach/test-lab/annotations/v1';
 const FPS30_MIGRATION_KEY = '@blink-coach/settings/fps30-migrated';
@@ -26,14 +29,7 @@ export async function loadSettings(): Promise<AppSettings> {
       if (parsed.inferenceFps === 15) parsed.inferenceFps = 30;
       await AsyncStorage.setItem(FPS30_MIGRATION_KEY, '1');
     }
-    return {
-      ...DEFAULT_SETTINGS,
-      ...parsed,
-      manualThresholds: {
-        ...DEFAULT_SETTINGS.manualThresholds,
-        ...(parsed.manualThresholds ?? {}),
-      },
-    };
+    return migrateDetectorSettings(parsed);
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -55,6 +51,10 @@ export async function loadCalibration(): Promise<CalibrationProfile | null> {
 
 export async function saveCalibration(profile: CalibrationProfile): Promise<void> {
   await AsyncStorage.setItem(CALIBRATION_KEY, JSON.stringify(profile));
+}
+
+export async function clearCalibration(): Promise<void> {
+  await AsyncStorage.removeItem(CALIBRATION_KEY);
 }
 
 export async function loadHistory(): Promise<SessionSummary[]> {

@@ -73,6 +73,9 @@ export default function HomeScreen(): React.ReactElement {
         ) : null}
         {coach.isMonitoring ? <Pressable onPress={() => coach.updateSettings({ cameraPreviewVisible: !coach.settings.cameraPreviewVisible })} style={styles.previewToggle} accessibilityRole="button"><Text style={styles.previewToggleText}>{coach.settings.cameraPreviewVisible ? 'Hide preview' : 'Show preview'}</Text></Pressable> : null}
         <Text style={styles.cameraHint}>Local only · no video or camera frames are saved.</Text>
+        {coach.isMonitoring && coach.faceDetected && coach.signalHistory.at(-1)?.eyeSignalReady === false ? (
+          <Text style={styles.cameraHint}>Waiting for a clear open-eye signal. Face the camera naturally; eyewear or reflections may obscure your eyes.</Text>
+        ) : null}
       </Card>
 
       {coach.reminderPulse ? (

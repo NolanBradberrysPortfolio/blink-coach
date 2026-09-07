@@ -16,10 +16,13 @@ This is not a medical device. It does not diagnose, treat, cure, or prevent dry 
 
 Before relying on it for a longer session, test once with the default 5-second reminder, then test calibration: **Calibrate → Begin Calibration → naturally open eyes → five natural blinks → three deliberate complete blinks**.
 
-If you wear goggles or tinted eye protection, Blink Coach automatically learns
-a conservative local open-eye baseline at the beginning of monitoring. The
-Developer overlay labels this as **relative baseline** and shows the active
-thresholds. Personal calibration is still recommended for the best result.
+Blink Coach automatically adapts to each eye's recent open baseline after a
+short settling period. You do not need Developer Mode or manual calibration
+to start. **Goggles remain unreliable:** the recovered goggles recording still
+produces only one detection against ten user-reported blinks. Face detection
+does not mean eyelids are visible enough to count. If Home says it is waiting
+for clear open eyes, try facing the camera and reducing lens reflections.
+Changing thresholds cannot recover eyelid motion that the model cannot see.
 
 ## How to test a prerecorded blink video
 
@@ -90,12 +93,18 @@ The current deliverable is the web/PWA version because it can be tested on an iP
 
 ## Known limitations and physical-device checks
 
-The September 7 review fixed natural-blink timing, camera frame scheduling,
-video seeking, and model-download retries. In three public EyeBlink8 excerpts,
-detected annotated blinks rose from 0/14 to 8/14 with zero false positives; this
-small sample still has substantial misses. See [the measured review](REVIEW-2026-09-07.md)
-for the tuning/validation split, reproduction commands, and remaining limits.
-You do not need Developer Mode or a new video to use these updates.
+The geometric detector update uses pixel-corrected eye shape, faster smoothing,
+per-eye baselines, and an independent blink confirmation check. Across eight
+30-second EyeBlink8 development excerpts it matched 45/49 blinks versus 38/49
+before, with one false alarm in each version. On two untouched 30-second
+validation sections it matched 13/13 versus 10/13, with no false alarms.
+These are small desktop video tests, not a claim of equivalent iPhone or goggles
+accuracy. Timing error increased slightly. See [the measured evaluation](GEOMETRY-EVALUATION-2026-09-07.md)
+for exact results, limitations, and reproduction commands.
+
+Refresh the main app to receive the change. Old calibration/manual thresholds
+use a different signal scale and are not applied; history and other preferences
+are preserved. Automatic adaptation works without repeating calibration.
 
 - No native Apple detector is bundled yet; the supported first version is the HTTPS web/PWA flow in iPhone Safari.
 - The first monitoring start needs network access to fetch the MediaPipe browser runtime and model. After loading, inference and all session logic run locally.

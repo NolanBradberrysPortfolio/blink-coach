@@ -27,6 +27,64 @@ function validBlinkSamples(start = 0): [number, number, boolean?][] {
 }
 
 describe('BlinkStateMachine', () => {
+  it.each([0.2, 0.8, undefined])('uses optional independent closure evidence (%s)', (evidence) => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    let count = 0;
+    for (let index = 0; index < 40; index++) {
+      const closed = index >= 10 && index < 13;
+      const sample = frame(index * 1000 / 30, closed ? 0.1 : 0.9);
+      sample.closureEvidence = evidence === undefined ? undefined : closed ? evidence : 0;
+      if (machine.process(sample).event) count++;
+    }
+    expect(count).toBe(evidence === 0.2 ? 0 : 1);
+  });
+
+  it('uses separate eye baselines rather than treating a narrow eye as a wink', () => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    let count = 0;
+    for (let index = 0; index < 150; index++) {
+      const closed = index >= 100 && index < 104;
+      if (machine.process(pairFrame(index * 1000 / 30, closed ? 0.02 : 0.3, 0.8)).event) count++;
+    }
+    expect(count).toBe(1);
+    const output = machine.process(pairFrame(5100, 0.3, 0.8));
+    expect(output.leftSmoothed).toBeCloseTo(output.rightSmoothed!, 2);
+  });
+  it('does not arm from a single open-looking acquisition frame', () => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    expect(machine.process(frame(0, 0.9)).eyeSignalReady).toBe(false);
+    let count = 0;
+    for (let index = 1; index < 20; index++) {
+      if (machine.process(frame(index * 1000 / 30, index < 10 ? 0.05 : 0.9)).event) count++;
+    }
+    expect(count).toBe(0);
+  });
+
+  it('does not activate low-signal calibration during startup occlusion', () => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    for (let index = 0; index < 45; index++) machine.process(frame(index * 1000 / 30, 0.35));
+    expect(machine.getActiveThresholds().adaptive).toBe(false);
+  });
+  it('arms below the global close gate after a useful low open baseline', () => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    let count = 0;
+    for (let index = 0; index < 90; index++) {
+      const closed = index >= 65 && index < 71;
+      if (machine.process(frame(index * 1000 / 30, closed ? 0.01 : 0.35)).event) count++;
+    }
+    expect(machine.getActiveThresholds().adaptive).toBe(true);
+    expect(count).toBe(1);
+  });
+
+  it('does not turn constant low/closed signals into repeated blinks', () => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    let count = 0;
+    for (let index = 0; index < 300; index++) {
+      if (machine.process(frame(index * 1000 / 30, 0.1 + (index % 2) * 0.02)).event) count++;
+    }
+    expect(count).toBe(0);
+    expect(machine.getActiveThresholds().adaptive).toBe(false);
+  });
   it.each(['both', 'left', 'right'])('counts a 100 ms closure at 30 FPS (%s)', (eye) => {
     const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
     let count = 0;
@@ -100,15 +158,16 @@ describe('BlinkStateMachine', () => {
     expect(run(machine, validBlinkSamples(700))).toBe(1);
   });
 
-  it('learns a lower open-eye baseline for goggles without changing normal signals', () => {
+  it.each([0.58, 0.48])('handles an open baseline of %s without changing normal signals', (open) => {
     const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
     const lowSignalBlink: [number, number, boolean?][] = [
-      [0, 0.3], [100, 0.55], [200, 0.58], [300, 0.58], [400, 0.58],
-      [500, 0.18], [600, 0.18], [700, 0.18], [800, 0.18],
-      [900, 0.55], [1000, 0.58], [1100, 0.58], [1200, 0.58],
+      [0, 0.3], [100, open - 0.03], [200, open], [300, open], [400, open],
+      [1800, open], [1900, open], [2000, open],
+      [2500, 0.18], [2600, 0.18], [2700, 0.18], [2800, 0.18],
+      [2900, open - 0.03], [3000, open], [3100, open], [3200, open],
     ];
     expect(run(machine, lowSignalBlink)).toBe(1);
-    expect(machine.getActiveThresholds().adaptive).toBe(true);
-    expect(machine.getActiveThresholds().openThreshold).toBeLessThan(DEFAULT_BLINK_CONFIG.openThreshold);
+    expect(machine.getActiveThresholds().adaptive).toBe(open < DEFAULT_BLINK_CONFIG.openThreshold);
+    expect(machine.getActiveThresholds().openThreshold).toBeLessThanOrEqual(DEFAULT_BLINK_CONFIG.openThreshold);
   });
 });

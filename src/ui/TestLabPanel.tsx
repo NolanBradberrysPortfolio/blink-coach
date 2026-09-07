@@ -288,6 +288,7 @@ export function TestLabPanel(): React.ReactElement {
         rightEyeScore: sample.right,
         confidence: sample.confidence,
         signalSource: sample.signalSource,
+        closureEvidence: sample.closureEvidence,
       })),
       events,
     });

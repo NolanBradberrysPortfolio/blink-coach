@@ -63,6 +63,8 @@ export class BlinkAnalysisPipeline {
       ? { ...machineOutput.event, classification: classification.classification }
       : null;
     const signalSample: SignalSample = {
+      closureEvidence: result.closureEvidence,
+      eyeSignalReady: machineOutput.eyeSignalReady,
       timestampMs: result.timestampMs,
       left: result.leftEyeScore,
       right: result.rightEyeScore,

@@ -5,6 +5,7 @@ import {
   CalibrationProfile,
   CalibrationSnapshot,
   EyeFrameResult,
+  DETECTOR_PROFILE_VERSION,
 } from './types';
 
 const OPEN_PHASE_MS = 3000;
@@ -105,6 +106,7 @@ export class CalibrationCollector {
     const closedRight = median(this.closedSamples.map((sample) => sample.right));
     const gap = Math.max(0.08, ((openLeft - closedLeft) + (openRight - closedRight)) / 2);
     return {
+      detectorProfileVersion: DETECTOR_PROFILE_VERSION,
       createdAt,
       openLeft,
       openRight,

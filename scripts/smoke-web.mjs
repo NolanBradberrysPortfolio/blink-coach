@@ -28,5 +28,17 @@ try {
   await page.getByText('Ready to begin',{exact:true}).waitFor();
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
   if(overflow || errors.length) throw new Error(JSON.stringify({overflow,errors}));
-  console.log('PASS: mobile home loads, camera/detector start, stop, no page errors or horizontal overflow.');
+  await page.goto(`http://127.0.0.1:${server.address().port}/blink-coach/lab`);
+  await page.getByText('Left EAR', {exact:true}).waitFor();
+  for (const label of ['Left EAR', 'Right EAR', 'Inference FPS']) {
+    const box = await page.getByText(label, {exact:true}).boundingBox();
+    if (!box || box.width < 60) throw new Error(`Crushed diagnostic label: ${label}`);
+  }
+  const labOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
+  if(labOverflow || errors.length) throw new Error(JSON.stringify({labOverflow,errors}));
+  if (process.argv[3]) {
+    await page.getByText('Inference FPS', {exact:true}).scrollIntoViewIfNeeded();
+    await page.screenshot({path:process.argv[3]});
+  }
+  console.log('PASS: mobile camera start/stop, diagnostic labels readable, no page errors or horizontal overflow.');
 } finally {await browser.close();server.close();}

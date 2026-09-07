@@ -6,6 +6,12 @@ function frame(timestampMs: number, openness: number): EyeFrameResult {
 }
 
 describe('BlinkAnalysisPipeline', () => {
+  it('retains confirmation evidence in diagnostic/export samples', () => {
+    const pipeline = new BlinkAnalysisPipeline(DEFAULT_BLINK_CONFIG);
+    const output = pipeline.process({ ...frame(0, 0.9), closureEvidence: 0.15 });
+    expect(output.signalSample.closureEvidence).toBe(0.15);
+    expect(output.signalSample.eyeSignalReady).toBe(false);
+  });
   it('returns the same one-shot classified event shape used by live monitoring', () => {
     const pipeline = new BlinkAnalysisPipeline(DEFAULT_BLINK_CONFIG);
     const frames = [

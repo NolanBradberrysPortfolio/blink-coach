@@ -18,8 +18,8 @@ interface BlinkDetector {
 
 1. `CameraPreview` requests `navigator.mediaDevices.getUserMedia` with a preferred user-facing camera.
 2. `createBlinkDetector()` selects `WebMediaPipeBlinkDetector` on web.
-3. The web detector loads the `@mediapipe/tasks-vision` browser bundle, creates `FaceLandmarker` in `VIDEO` mode with `outputFaceBlendshapes: true`, and prefers `eyeBlinkLeft`/`eyeBlinkRight` openness signals.
-4. If those blendshapes are unavailable, it derives a normalized openness signal from the standard eye landmarks using Eye Aspect Ratio.
+3. The web detector loads the `@mediapipe/tasks-vision` browser bundle and creates `FaceLandmarker` in `VIDEO` mode with `outputFaceBlendshapes: true`.
+4. Pixel-space 2D Eye Aspect Ratio supplies eye openness. Width/height correction prevents portrait video from distorting geometric distances. Optional detector-neutral `closureEvidence` supplies independent confirmation from the maximum left/right blink blendshape coefficient during a candidate event. Geometry controls timing; weak confirmation rejects a candidate. A missing coefficient allows geometry-only fallback. The legacy `hybrid` extraction option exists for reproducible historical comparisons, not as a separate event counter.
 5. The provider schedules inference at the configured 10/15/20/30 FPS target, measures actual inference FPS, and never stores the video element, frame pixels, or detector output beyond the in-memory signal graph for the current session.
 
 ## Shared live/video test path
@@ -58,13 +58,24 @@ OPEN → CLOSING → CLOSED → OPENING → OPEN
 Face loss resets the state by default. Minimum/maximum closure duration, close/open frame counts, smoothing, eye-combination rule, single-eye open ratio, confidence minimum, missing-frame tolerance, incomplete closure threshold, and debounce are centralized configuration values. Events carry closure depth, duration, and symmetry so the experimental classifier can be replaced without changing session logic.
 
 The state machine also has a conservative low-signal baseline mode. During the
-first part of a session it records a high-water mark for each eye. If the
+first part of a session it records a rolling upper quantile for each eye. After
+1.8 seconds of settling, if the
 observed open-eye signal is materially below the global threshold (as can
 happen with tinted goggles), it derives active thresholds from that local
-baseline. Normal higher-valued signals continue using the global or saved
+baseline. Each eye is normalized against its own baseline so a naturally
+narrower eye is not mistaken for a sustained wink. Thresholds stay fixed during
+a candidate blink. Normal higher-valued signals continue using the global or saved
 calibration thresholds. The active thresholds are included in diagnostic
 samples so the Developer overlay and Test Lab graph show what was actually
 used. This is signal normalization, not training a person-specific model.
+
+Calibration is versioned by eye-signal scale (`pixel-ear-v1`). Legacy profiles
+remain stored under their old key but are not applied to new geometric signals.
+Legacy manual thresholds are disabled once; unrelated preferences/history are
+preserved. Recalibration is optional, and no user's video is embedded in global
+defaults. Detecting a face does not guarantee usable eyelid landmarks, especially
+through goggles. Home and diagnostics explicitly show when open eyes have not
+yet armed detection.
 
 ## Test Lab data boundary
 

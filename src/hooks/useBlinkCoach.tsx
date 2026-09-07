@@ -22,6 +22,7 @@ import {
 import { createBlinkDetector } from '../detectors/createBlinkDetector';
 import {
   clearHistory,
+  clearCalibration,
   loadCalibration,
   loadHistory,
   loadSettings,
@@ -493,6 +494,7 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
   }, [startMonitoring]);
 
   const resetCalibration = useCallback(() => {
+    void clearCalibration();
     calibrationRef.current = null;
     calibrationProfileRef.current = null;
     setCalibrationProfile(null);

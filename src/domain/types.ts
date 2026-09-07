@@ -1,4 +1,5 @@
 export type BlinkState = 'OPEN' | 'CLOSING' | 'CLOSED' | 'OPENING' | 'INVALID';
+export const DETECTOR_PROFILE_VERSION = 'pixel-ear-v1';
 
 export type EyeSignalSource = 'blendshape' | 'blendshape+landmark' | 'landmark' | 'none';
 
@@ -11,6 +12,11 @@ export interface EyeFrameResult {
   rightEyeScore: number | null;
   confidence?: number;
   signalSource?: EyeSignalSource;
+  /** Optional extraction diagnostics; not used by the state machine. */
+  leftEyeAspectRatio?: number | null;
+  rightEyeAspectRatio?: number | null;
+  /** Optional independent closure evidence, 0–1, from a capable detector. */
+  closureEvidence?: number;
 }
 
 export interface BlinkDetector {
@@ -50,6 +56,11 @@ export interface BlinkDetectionConfig {
   adaptiveOpenRatio?: number;
   adaptiveCloseRatio?: number;
   adaptiveReopenRatio?: number;
+  /** Lowest useful normalized open baseline, independent of the close gate. */
+  adaptiveMinimumBaseline?: number;
+  adaptiveBaselineWindowMs?: number;
+  adaptiveBaselineQuantile?: number;
+  minimumClosureEvidence?: number;
 }
 
 export interface ActiveBlinkThresholds {
@@ -62,16 +73,16 @@ export interface ActiveBlinkThresholds {
 }
 
 export const DEFAULT_BLINK_CONFIG: BlinkDetectionConfig = {
-  openThreshold: 0.62,
+  openThreshold: 0.55,
   closeThreshold: 0.46,
-  reopenThreshold: 0.58,
-  minBlinkDurationMs: 80,
+  reopenThreshold: 0.5,
+  minBlinkDurationMs: 50,
   maxBlinkDurationMs: 900,
   debounceMs: 280,
   closeFramesRequired: 2,
   openFramesRequired: 2,
   maxEyeAsymmetry: 0.38,
-  smoothingAlpha: 0.55,
+  smoothingAlpha: 0.8,
   eyeCombination: 'average',
   confidenceMinimum: 0.45,
   missingFrameToleranceMs: 0,
@@ -81,6 +92,10 @@ export const DEFAULT_BLINK_CONFIG: BlinkDetectionConfig = {
   singleEyeOpenRatio: 0.72,
   adaptiveBaselineEnabled: true,
   adaptiveBaselineWarmupMs: 1800,
+  adaptiveMinimumBaseline: 0.18,
+  adaptiveBaselineWindowMs: 3000,
+  adaptiveBaselineQuantile: 0.85,
+  minimumClosureEvidence: 0.5,
   adaptiveOpenRatio: 0.84,
   adaptiveCloseRatio: 0.64,
   adaptiveReopenRatio: 0.80,
@@ -108,6 +123,7 @@ export interface BlinkClassificationResult {
 }
 
 export interface CalibrationProfile {
+  detectorProfileVersion?: string;
   createdAt: string;
   openLeft: number;
   openRight: number;
@@ -139,6 +155,7 @@ export interface ManualThresholds {
 }
 
 export interface AppSettings {
+  detectorProfileVersion?: string;
   reminderIntervalSeconds: number;
   customReminderIntervalSeconds: number;
   soundEnabled: boolean;
@@ -151,6 +168,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  detectorProfileVersion: DETECTOR_PROFILE_VERSION,
   reminderIntervalSeconds: 5,
   customReminderIntervalSeconds: 12,
   soundEnabled: true,
@@ -188,6 +206,8 @@ export interface ReminderSnapshot {
 }
 
 export interface SignalSample {
+  closureEvidence?: number;
+  eyeSignalReady?: boolean;
   timestampMs: number;
   left: number | null;
   right: number | null;
