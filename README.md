@@ -90,6 +90,13 @@ The current deliverable is the web/PWA version because it can be tested on an iP
 
 ## Known limitations and physical-device checks
 
+The September 7 review fixed natural-blink timing, camera frame scheduling,
+video seeking, and model-download retries. In three public EyeBlink8 excerpts,
+detected annotated blinks rose from 0/14 to 8/14 with zero false positives; this
+small sample still has substantial misses. See [the measured review](REVIEW-2026-09-07.md)
+for the tuning/validation split, reproduction commands, and remaining limits.
+You do not need Developer Mode or a new video to use these updates.
+
 - No native Apple detector is bundled yet; the supported first version is the HTTPS web/PWA flow in iPhone Safari.
 - The first monitoring start needs network access to fetch the MediaPipe browser runtime and model. After loading, inference and all session logic run locally.
 - Camera permission, Safari’s background/stand behavior, iPhone rotation, battery impact, and real-world blink accuracy still need physical iPhone testing. Desktop export and deterministic logic tests cannot prove those device behaviors.

@@ -27,6 +27,9 @@ function event(overrides: Partial<BlinkEvent>): BlinkEvent {
 }
 
 describe('experimental complete-blink classifier', () => {
+  it('does not label one closed eye as a complete bilateral blink', () => {
+    expect(classifyBlink(event({ rightMaxClosureDepth: 0.1, symmetryAtMax: 0.7 }), null, DEFAULT_BLINK_CONFIG).classification).toBe('incomplete');
+  });
   it('classifies deep, plausible, symmetric closure as complete', () => {
     expect(classifyBlink(event({}), calibration, DEFAULT_BLINK_CONFIG).classification).toBe('complete');
   });

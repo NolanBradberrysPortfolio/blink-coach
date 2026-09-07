@@ -27,6 +27,32 @@ function validBlinkSamples(start = 0): [number, number, boolean?][] {
 }
 
 describe('BlinkStateMachine', () => {
+  it.each(['both', 'left', 'right'])('counts a 100 ms closure at 30 FPS (%s)', (eye) => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    let count = 0;
+    for (let index = 0; index < 40; index++) {
+      const closed = index >= 10 && index < 13;
+      const left = closed && eye !== 'right' ? 0.1 : 0.9;
+      const right = closed && eye !== 'left' ? 0.1 : 0.9;
+      if (machine.process(pairFrame(index * 1000 / 30, left, right)).event) count++;
+    }
+    expect(count).toBe(1);
+  });
+
+  it('rejects a single bad frame at 30 FPS', () => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    let count = 0;
+    for (let index = 0; index < 40; index++) {
+      if (machine.process(frame(index * 1000 / 30, index === 10 ? 0 : 0.9)).event) count++;
+    }
+    expect(count).toBe(0);
+  });
+
+  it('recovers from nonfinite eye signals', () => {
+    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    machine.process(pairFrame(0, NaN, 0.9));
+    expect(run(machine, validBlinkSamples(100))).toBe(1);
+  });
   it('counts one physical blink exactly once', () => {
     const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
     expect(run(machine, validBlinkSamples())).toBe(1);
@@ -45,10 +71,10 @@ describe('BlinkStateMachine', () => {
   });
 
   it('rejects a closure that is too short', () => {
-    const machine = new BlinkStateMachine(DEFAULT_BLINK_CONFIG);
+    const machine = new BlinkStateMachine({ ...DEFAULT_BLINK_CONFIG, smoothingAlpha: 1 });
     const samples: [number, number, boolean?][] = [
       [0, 0.9], [66, 0.9], [132, 0.9],
-      [198, 0.1], [264, 0.1], [330, 0.95], [396, 0.95], [462, 0.95],
+      [198, 0.1], [218, 0.1], [238, 0.95], [258, 0.95], [278, 0.95],
     ];
     expect(run(machine, samples)).toBe(0);
   });

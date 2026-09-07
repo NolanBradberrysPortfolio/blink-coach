@@ -13,12 +13,13 @@ export function classifyBlink(
   const depthThreshold = calibration?.completeClosureThreshold ?? config.incompleteClosureThreshold;
   const durationGood = event.durationMs >= config.minBlinkDurationMs && event.durationMs <= config.completeBlinkMaxDurationMs;
   const symmetryGood = event.symmetryAtMax <= config.maxEyeAsymmetry;
-  const depthGood = event.maxClosureDepth >= depthThreshold;
+  const depthGood = event.maxClosureDepth >= depthThreshold &&
+    Math.min(event.leftMaxClosureDepth, event.rightMaxClosureDepth) >= depthThreshold;
   const score =
     (depthGood ? 0.5 : 0) +
     (durationGood ? 0.3 : 0) +
     (symmetryGood ? 0.2 : 0);
-  const complete = score >= 0.75;
+  const complete = depthGood && durationGood && symmetryGood;
   return {
     classification: complete ? 'complete' : 'incomplete',
     confidence: clamp(score, 0, 1),

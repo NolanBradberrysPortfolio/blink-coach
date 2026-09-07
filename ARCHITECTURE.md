@@ -43,6 +43,12 @@ local prerecorded HTMLVideoElement ───────┘
 
 ## Blink logic
 
+Closure timing begins at the first qualifying closed sample, before the
+confirmation frame. CLOSING can transition directly to OPENING if reopening
+occurs after the minimum duration; requiring a separate sampled CLOSED state
+would discard fast blinks. FrameGate throttles inference by deadlines and
+media timestamps so minor scheduling jitter does not halve the intended rate.
+
 The state machine smooths each eye independently, normally combines both eyes with an asymmetry guard, and also accepts a sustained single-eye closure when the other eye remains open. Both paths require the same clean sequence:
 
 ```text

@@ -541,34 +541,19 @@ function seekVideo(video: HTMLVideoElement, timeSeconds: number): Promise<void> 
       reject(new Error('The browser took too long to seek this video frame.'));
     }, 8000);
     video.addEventListener('seeked', onSeeked, { once: true });
-    video.currentTime = target;
-    if (Math.abs(video.currentTime - target) < 0.01) window.setTimeout(finish, 0);
+    if (Math.abs(video.currentTime - target) < 0.0001 && !video.seeking && video.readyState >= 2) finish();
+    else video.currentTime = target;
   });
 }
 
 /**
  * A seeked event means the media timeline moved, but on some browsers the
  * decoded frame exposed to MediaPipe is updated one compositor tick later.
- * Waiting for requestVideoFrameCallback prevents the video test lab from
- * repeatedly analyzing a stale frame while live monitoring continues to use
- * the current camera frame.
+ * Wait for seek completion and one compositor tick. A paused video need not
+ * emit another video-frame callback after seeked has already fired.
  */
 async function seekVideoFrame(video: HTMLVideoElement, timeSeconds: number): Promise<void> {
   await seekVideo(video, timeSeconds);
-  if (typeof video.requestVideoFrameCallback === 'function') {
-    await new Promise<void>((resolve) => {
-      let settled = false;
-      const finish = () => {
-        if (settled) return;
-        settled = true;
-        window.clearTimeout(timeout);
-        resolve();
-      };
-      const timeout = window.setTimeout(finish, 500);
-      video.requestVideoFrameCallback(() => finish());
-    });
-    return;
-  }
   await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
 }
 

@@ -63,7 +63,7 @@ export interface ActiveBlinkThresholds {
 
 export const DEFAULT_BLINK_CONFIG: BlinkDetectionConfig = {
   openThreshold: 0.62,
-  closeThreshold: 0.38,
+  closeThreshold: 0.46,
   reopenThreshold: 0.58,
   minBlinkDurationMs: 80,
   maxBlinkDurationMs: 900,
@@ -71,7 +71,7 @@ export const DEFAULT_BLINK_CONFIG: BlinkDetectionConfig = {
   closeFramesRequired: 2,
   openFramesRequired: 2,
   maxEyeAsymmetry: 0.38,
-  smoothingAlpha: 0.42,
+  smoothingAlpha: 0.55,
   eyeCombination: 'average',
   confidenceMinimum: 0.45,
   missingFrameToleranceMs: 0,

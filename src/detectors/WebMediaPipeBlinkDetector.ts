@@ -94,7 +94,11 @@ function loadVisionBundle(): Promise<MediaPipeVisionModule> {
     script.onerror = () => reject(new Error('The MediaPipe browser bundle could not be downloaded. Check the network connection.'));
     document.head.appendChild(script);
   });
-  return visionModulePromise;
+  return visionModulePromise.catch((error: unknown) => {
+    // A failed first download must not make every later Try again fail too.
+    visionModulePromise = null;
+    throw error;
+  });
 }
 
 function toEyeFrameResult(result: FaceLandmarkerResult, timestampMs: number): EyeFrameResult {

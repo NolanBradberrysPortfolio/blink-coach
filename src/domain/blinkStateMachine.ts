@@ -31,6 +31,7 @@ export class BlinkStateMachine {
   private closedFrameCount = 0;
   private openFrameCount = 0;
   private closureStartMs: number | null = null;
+  private firstClosedAtMs: number | null = null;
   private cooldownUntilMs = 0;
   private leftMaxClosureDepth = 0;
   private rightMaxClosureDepth = 0;
@@ -62,6 +63,7 @@ export class BlinkStateMachine {
     this.closedFrameCount = 0;
     this.openFrameCount = 0;
     this.closureStartMs = null;
+    this.firstClosedAtMs = null;
     this.cooldownUntilMs = 0;
     this.leftMaxClosureDepth = 0;
     this.rightMaxClosureDepth = 0;
@@ -83,6 +85,8 @@ export class BlinkStateMachine {
       !result.faceDetected ||
       result.leftEyeScore === null ||
       result.rightEyeScore === null ||
+      !Number.isFinite(result.leftEyeScore) ||
+      !Number.isFinite(result.rightEyeScore) ||
       !Number.isFinite(result.timestampMs) ||
       (result.confidence !== undefined && result.confidence < this.config.confidenceMinimum);
     if (invalidSignal) {
@@ -143,6 +147,8 @@ export class BlinkStateMachine {
 
     if (this.state === 'OPEN') {
       this.openFrameCount = isOpen ? this.openFrameCount + 1 : 0;
+      if (!isClosed) this.firstClosedAtMs = null;
+      else if (this.closedFrameCount === 0) this.firstClosedAtMs = timestamp;
       this.closedFrameCount = isClosed ? this.closedFrameCount + 1 : 0;
       if (
         this.hasEstablishedOpen &&
@@ -152,7 +158,7 @@ export class BlinkStateMachine {
       ) {
         this.state = 'CLOSING';
         this.closureMode = closedMode ?? 'both';
-        this.closureStartMs = timestamp;
+        this.closureStartMs = this.firstClosedAtMs ?? timestamp;
         this.leftMaxClosureDepth = 1 - leftSmoothed;
         this.rightMaxClosureDepth = 1 - rightSmoothed;
         this.symmetryAtMax = asymmetry;
@@ -164,11 +170,17 @@ export class BlinkStateMachine {
       this.updateClosureExtrema(asymmetry);
       const closureDuration = timestamp - (this.closureStartMs ?? timestamp);
       if (!isClosed && isReopened) {
-        // A close that immediately bounces open is not a valid blink.
-        this.state = 'OPEN';
-        this.closureMode = null;
-        this.closureStartMs = null;
-        this.closedFrameCount = 0;
+        // Validate the whole closure-to-reopen interval. A natural blink can
+        // reopen between samples without ever landing in CLOSED.
+        if (closureDuration >= this.config.minBlinkDurationMs && closureDuration <= this.config.maxBlinkDurationMs) {
+          this.state = 'OPENING';
+          this.openFrameCount = 1;
+        } else {
+          this.state = 'OPEN';
+          this.closureMode = null;
+          this.closureStartMs = null;
+          this.closedFrameCount = 0;
+        }
       } else if (closureDuration > this.config.maxBlinkDurationMs) {
         this.state = 'INVALID';
       } else if (isClosed) {

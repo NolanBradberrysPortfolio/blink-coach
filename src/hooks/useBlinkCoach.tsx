@@ -1,5 +1,6 @@
 import React, { PropsWithChildren, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { BlinkAnalysisPipeline } from '../domain/analysisPipeline';
+import { FrameGate } from '../domain/frameGate';
 import { CalibrationCollector } from '../domain/calibration';
 import { getEffectiveBlinkConfig, effectiveReminderIntervalSeconds } from '../domain/settings';
 import { ReminderEngine } from '../domain/reminderEngine';
@@ -303,7 +304,7 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
         await detector.initialize();
         if (!activeRef.current || generation !== processingGenerationRef.current) return;
         setCameraState('ready');
-        let lastInferenceAt = 0;
+        const frameGate = new FrameGate();
         let inferenceBusy = false;
         const scheduleNextFrame = () => {
           if (!activeRef.current || generation !== processingGenerationRef.current || typeof window === 'undefined') return;
@@ -321,9 +322,7 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
         };
         const tick = (frameTime: number) => {
           if (!activeRef.current || generation !== processingGenerationRef.current) return;
-          const targetInterval = 1000 / settingsRef.current.inferenceFps;
-          if (!inferenceBusy && frameTime - lastInferenceAt >= targetInterval && video.readyState >= 2) {
-            lastInferenceAt = frameTime;
+          if (!inferenceBusy && video.readyState >= 2 && frameGate.shouldProcess(frameTime, video.currentTime, settingsRef.current.inferenceFps)) {
             inferenceBusy = true;
             const timestampMs = clockNow();
             void detector.processFrame(video, timestampMs)
