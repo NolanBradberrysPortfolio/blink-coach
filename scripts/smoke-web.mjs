@@ -18,12 +18,31 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const browser = await chromium.launch({executablePath:process.argv[2],headless:true,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
 try {
   const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  await page.addInitScript(() => {
+    const original = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    window.cameraSwitchChecks = [];
+    let previous;
+    navigator.mediaDevices.getUserMedia = async constraints => {
+      window.cameraSwitchChecks.push({ facing: constraints.video.facingMode, previousStopped: !previous || previous.getTracks().every(t => t.readyState === 'ended') });
+      // Desktop synthetic cameras have no rear lens; retain the real stream
+      // lifecycle but map the requested lens to the available fake camera.
+      previous = await original({ ...constraints, video: { ...constraints.video, facingMode: { ideal: 'user' } } });
+      return previous;
+    };
+  });
   const errors=[]; page.on('pageerror',error=>{errors.push(error.message);console.error(error.message);});
   page.on('response', response => { if(response.status()>=400) console.error(response.status(),response.url()); });
   await page.goto(`http://127.0.0.1:${server.address().port}/blink-coach/`);
   await page.waitForLoadState('networkidle');
   await page.getByRole('button',{name:'Start Monitoring',exact:true}).click();
   await page.getByText('Monitoring',{exact:true}).waitFor({timeout:60000});
+  await page.getByRole('button', { name: 'Flip camera · use back camera', exact: true }).click();
+  await page.getByText('Monitoring',{exact:true}).waitFor({timeout:60000});
+  if (await page.locator('video').evaluate(v => v.style.transform) !== 'none') throw new Error('Back preview should not be mirrored');
+  await page.getByRole('button', { name: 'Flip camera · use front camera', exact: true }).click();
+  await page.getByText('Monitoring',{exact:true}).waitFor({timeout:60000});
+  const switches = await page.evaluate(() => window.cameraSwitchChecks);
+  if (switches.length !== 3 || !switches.every(s => s.previousStopped) || switches[1].facing.exact !== 'environment' || switches[2].facing.ideal !== 'user') throw new Error(JSON.stringify(switches));
   await page.getByRole('button',{name:'Stop Monitoring',exact:true}).click();
   await page.getByText('Ready to begin',{exact:true}).waitFor();
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
@@ -40,5 +59,5 @@ try {
     await page.getByText('Inference FPS', {exact:true}).scrollIntoViewIfNeeded();
     await page.screenshot({path:process.argv[3]});
   }
-  console.log('PASS: mobile camera start/stop, diagnostic labels readable, no page errors or horizontal overflow.');
+  console.log('PASS: mobile camera start/stop, front/back/front switching releases old tracks, preview mirroring, readable diagnostics, no page errors or overflow. Synthetic lenses only.');
 } finally {await browser.close();server.close();}

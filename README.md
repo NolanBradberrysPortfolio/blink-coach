@@ -26,6 +26,11 @@ Changing thresholds cannot recover eyelid motion that the model cannot see.
 
 ## How to test a prerecorded blink video
 
+On Home, tap **Flip camera · use back camera** below the preview to change lenses.
+Tap again to return to the front camera. You can switch before or during monitoring;
+the session count is preserved while the camera restarts. The back preview is not
+mirrored. Devices without a back camera show an error and let you switch back.
+
 ### Report missed blinks without the Test Lab
 
 Open [the report screen](https://nolanbradberrysportfolio.github.io/blink-coach/report)

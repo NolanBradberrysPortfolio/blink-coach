@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import { SecondaryButton } from './Ui';
 
 interface CameraPreviewProps {
   active: boolean;
   hidden?: boolean;
   retryKey?: number;
+  facingMode?: 'user' | 'environment';
+  onFlip?: () => void;
   onReady: (video: HTMLVideoElement | null) => void;
   onError: (message: string) => void;
   onStreamLost?: () => void;
@@ -14,6 +17,8 @@ export function CameraPreview({
   active,
   hidden = false,
   retryKey = 0,
+  facingMode = 'user',
+  onFlip,
   onReady,
   onError,
   onStreamLost,
@@ -63,7 +68,7 @@ export function CameraPreview({
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
           video: {
-            facingMode: { ideal: 'user' },
+            facingMode: facingMode === 'environment' ? { exact: 'environment' } : { ideal: 'user' },
             width: { ideal: 640 },
             height: { ideal: 480 },
             frameRate: { ideal: 30, max: 30 },
@@ -149,9 +154,10 @@ export function CameraPreview({
       document.removeEventListener('visibilitychange', handleVisibility);
       stopStream();
     };
-  }, [active, onError, onReady, onStreamLost, retryKey]);
+  }, [active, facingMode, onError, onReady, onStreamLost, retryKey]);
 
   return (
+    <View style={{ gap: 10 }}>
     <View style={[styles.frame, hidden && styles.hiddenFrame]} accessible accessibilityLabel="Camera positioning preview">
       {Platform.OS === 'web' && active ? (
         React.createElement('video', {
@@ -166,7 +172,7 @@ export function CameraPreview({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            transform: 'scaleX(-1)',
+            transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
             backgroundColor: '#121A2D',
             ...(hidden ? { opacity: 0.02 } : {}),
           } as React.CSSProperties,
@@ -189,6 +195,8 @@ export function CameraPreview({
         </View>
       ) : null}
     </View>
+    {onFlip ? <SecondaryButton label={facingMode === 'user' ? 'Flip camera · use back camera' : 'Flip camera · use front camera'} onPress={onFlip} /> : null}
+    </View>
   );
 }
 
@@ -198,8 +206,9 @@ function cameraErrorMessage(error: unknown): string {
     return 'Camera permission was denied. In iPhone Settings → Safari → Camera, allow access for this site, then try again.';
   }
   if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
-    return 'No front-facing camera was found on this device.';
+    return 'The selected camera was not found. Try switching to the other camera.';
   }
+  if (name === 'OverconstrainedError') return 'This device could not provide the selected camera. Switch back to the front camera.';
   if (name === 'NotReadableError' || name === 'TrackStartError') {
     return 'The camera is temporarily busy. Close other camera apps, then try again.';
   }

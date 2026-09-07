@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatDecimal, formatDuration } from '../src/domain/math';
 import { DeveloperOverlay } from '../src/ui/DeveloperOverlay';
@@ -11,7 +11,9 @@ import { useBlinkCoach } from '../src/hooks/useBlinkCoach';
 export default function HomeScreen(): React.ReactElement {
   const router = useRouter();
   const coach = useBlinkCoach();
-  if (coach.settings.lowDistractionMode) return <LowDistractionHome />;
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const flipCamera = () => setFacingMode(current => current === 'user' ? 'environment' : 'user');
+  if (coach.settings.lowDistractionMode) return <LowDistractionHome facingMode={facingMode} onFlip={flipCamera} />;
 
   const statusColor = !coach.isMonitoring ? colors.softMuted : coach.cameraState === 'ready' ? colors.teal : colors.amber;
   const statusText = !coach.isMonitoring
@@ -52,13 +54,15 @@ export default function HomeScreen(): React.ReactElement {
         <View style={styles.cardHeadingRow}>
           <View style={styles.headingCopy}>
             <Text style={styles.cardTitle}>Camera positioning</Text>
-            <Text style={styles.cardDescription}>{coach.isMonitoring ? 'Keep your eyes and eyebrows inside the frame.' : 'Your front camera stays off until you start.'}</Text>
+            <Text style={styles.cardDescription}>{coach.isMonitoring ? 'Keep your eyes and eyebrows inside the frame.' : 'Your selected camera stays off until you start.'}</Text>
           </View>
           {coach.isMonitoring ? <Text style={[styles.faceBadge, coach.faceDetected && styles.faceBadgeGood]}>{coach.faceDetected ? 'FACE FOUND' : 'LOOK HERE'}</Text> : null}
         </View>
         <CameraPreview
           key={coach.cameraRetryKey}
           active={coach.isMonitoring}
+          facingMode={facingMode}
+          onFlip={flipCamera}
           hidden={!coach.settings.cameraPreviewVisible}
           retryKey={coach.cameraRetryKey}
           onReady={coach.handleCameraReady}
@@ -109,7 +113,7 @@ export default function HomeScreen(): React.ReactElement {
   );
 }
 
-function LowDistractionHome(): React.ReactElement {
+function LowDistractionHome({ facingMode, onFlip }: { facingMode: 'user' | 'environment'; onFlip: () => void }): React.ReactElement {
   const router = useRouter();
   const coach = useBlinkCoach();
   const status = !coach.isMonitoring ? 'Ready' : coach.cameraState === 'ready' ? 'Monitoring' : 'Starting…';
@@ -128,6 +132,8 @@ function LowDistractionHome(): React.ReactElement {
           key={coach.cameraRetryKey}
           active={coach.isMonitoring}
           hidden
+          facingMode={facingMode}
+          onFlip={onFlip}
           retryKey={coach.cameraRetryKey}
           onReady={coach.handleCameraReady}
           onError={coach.handleCameraError}

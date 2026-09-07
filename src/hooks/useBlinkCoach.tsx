@@ -359,7 +359,12 @@ export function BlinkCoachProvider({ children }: PropsWithChildren): React.React
   const handleCameraReady = useCallback((video: HTMLVideoElement | null) => {
     if (!video) {
       stopProcessing();
-      if (activeRef.current) setCameraState('requesting');
+      // A lens change must not join a closure from one camera to another.
+      pipelineRef.current.reset();
+      faceDetectedRef.current = false;
+      setFaceDetected(false);
+      setInferenceFps(0);
+      if (activeRef.current) { setCameraState('requesting'); setCameraError(null); }
       return;
     }
     if (activeRef.current) startProcessing(video);
